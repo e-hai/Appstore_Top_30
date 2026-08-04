@@ -21,53 +21,72 @@ jobs:
           python-version: "3.10"
 
       - name: Install rclone
-        if: ${{ secrets.RCLONE_CONFIG_B64 != '' }}
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
         run: |
+          if [ -z "$RCLONE_CONFIG_B64" ]; then
+            echo "Google Drive not configured, skip rclone install"
+            exit 0
+          fi
           sudo apt-get update
           sudo apt-get install -y rclone
 
       - name: Download existing database from Google Drive
-        if: ${{ secrets.RCLONE_CONFIG_B64 != '' }}
         env:
           RCLONE_CONFIG: ${{ runner.temp }}/rclone.conf
           RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
         run: |
+          if [ -z "$RCLONE_CONFIG_B64" ]; then
+            echo "Google Drive not configured, skip download"
+            exit 0
+          fi
           echo "$RCLONE_CONFIG_B64" | base64 -d > "$RCLONE_CONFIG"
           chmod 600 "$RCLONE_CONFIG"
           mkdir -p data
           rclone --config "$RCLONE_CONFIG" copy "gdrive:appstore-top30/data/appstore_top30.db" data/ || true
 
       - name: Download existing database from R2
-        if: ${{ secrets.R2_BUCKET != '' }}
         env:
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_ENDPOINT_URL_S3: ${{ secrets.R2_ENDPOINT }}
           AWS_DEFAULT_REGION: auto
         run: |
+          if [ -z "$R2_BUCKET" ]; then
+            echo "R2 not configured, skip download"
+            exit 0
+          fi
           mkdir -p data
-          aws s3 cp s3://${{ secrets.R2_BUCKET }}/appstore-top30/data/appstore_top30.db data/appstore_top30.db || true
+          aws s3 cp "s3://$R2_BUCKET/appstore-top30/data/appstore_top30.db" data/appstore_top30.db || true
 
       - name: Run daily collection
         run: python3 -m appstore_top30 run
 
       - name: Upload database and reports to R2
-        if: ${{ secrets.R2_BUCKET != '' }}
         env:
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_ENDPOINT_URL_S3: ${{ secrets.R2_ENDPOINT }}
           AWS_DEFAULT_REGION: auto
         run: |
-          aws s3 cp data/appstore_top30.db s3://${{ secrets.R2_BUCKET }}/appstore-top30/data/appstore_top30.db
-          aws s3 sync reports/ s3://${{ secrets.R2_BUCKET }}/appstore-top30/reports/ --delete
+          if [ -z "$R2_BUCKET" ]; then
+            echo "R2 not configured, skip upload"
+            exit 0
+          fi
+          aws s3 cp data/appstore_top30.db "s3://$R2_BUCKET/appstore-top30/data/appstore_top30.db"
+          aws s3 sync reports/ "s3://$R2_BUCKET/appstore-top30/reports/" --delete
 
       - name: Backup to Google Drive
-        if: ${{ secrets.RCLONE_CONFIG_B64 != '' }}
         env:
           RCLONE_CONFIG: ${{ runner.temp }}/rclone.conf
           RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
         run: |
+          if [ -z "$RCLONE_CONFIG_B64" ]; then
+            echo "Google Drive not configured, skip backup"
+            exit 0
+          fi
           echo "$RCLONE_CONFIG_B64" | base64 -d > "$RCLONE_CONFIG"
           chmod 600 "$RCLONE_CONFIG"
           bash scripts/backup_gdrive.sh

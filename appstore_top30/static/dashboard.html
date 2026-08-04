@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App Store Top 30 数据看板</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">30</span>
+      <div>
+        <h1>App Store Top 30</h1>
+        <p>多地区 · 多榜单 · 每日数据看板</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <label>日期
+        <select id="date-select"></select>
+      </label>
+      <label>地区
+        <select id="region-select"></select>
+      </label>
+      <label>国家
+        <select id="country-select"></select>
+      </label>
+      <label>榜单
+        <select id="chart-select"></select>
+      </label>
+      <label>大类
+        <select id="category-select"></select>
+      </label>
+      <label>分类
+        <select id="subcategory-select"></select>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <aside class="side">
+      <section class="panel">
+        <div class="panel-title">数据总览</div>
+        <div id="summary-grid" class="summary-grid"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-title">分类分布</div>
+        <div id="distribution" class="distribution"></div>
+      </section>
+    </aside>
+
+    <section class="panel table-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">榜单明细</div>
+          <div id="table-count" class="panel-sub"></div>
+        </div>
+        <div class="panel-actions">
+          <div class="view-tabs">
+            <button id="tab-list" class="tab active" type="button">榜单明细</button>
+            <button id="tab-region" class="tab" type="button">地区汇总</button>
+          </div>
+          <div class="search-box" id="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></svg>
+            <input id="search-input" type="search" placeholder="搜索应用或开发者">
+          </div>
+        </div>
+      </div>
+      <div id="table-wrap" class="table-wrap">
+        <table>
+          <thead id="table-head">
+            <tr>
+              <th>排名</th>
+              <th>应用</th>
+              <th>开发者</th>
+              <th>分类</th>
+              <th>价格</th>
+              <th>评分</th>
+              <th>变化</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state hidden">暂无数据，请调整筛选条件或先运行抓取。</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="trend-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title" id="trend-title">排名趋势</div>
+        <div class="panel-sub" id="trend-meta"></div>
+      </div>
+      <button id="trend-close" class="icon-button" aria-label="关闭" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <div id="trend-chart" class="trend-chart"></div>
+      <p class="trend-note">数值越小排名越靠前，相同日期取最佳排名。</p>
+    </div>
+  </div>
+  <div id="drawer-mask" class="drawer-mask hidden"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

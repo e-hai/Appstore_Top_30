@@ -8,93 +8,99 @@
 </head>
 <body data-theme="light">
   <div id="loading-bar" class="loading-bar"></div>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">30</span>
-      <div>
-        <h1>App Store Top 30</h1>
-        <p>多地区 · 多榜单 · 每日数据看板</p>
-      </div>
-    </div>
-    <div class="toolbar">
-      <label>日期
-        <select id="date-select"></select>
-      </label>
-      <label>地区
-        <select id="region-select"></select>
-      </label>
-      <label>国家
-        <select id="country-select"></select>
-      </label>
-      <label>榜单
-        <select id="chart-select"></select>
-      </label>
-      <label>大类
-        <select id="category-select"></select>
-      </label>
-      <label>分类
-        <select id="subcategory-select"></select>
-      </label>
-      <label>主题
-        <select id="theme-select">
-          <option value="light">默认浅色</option>
-          <option value="dark">深色</option>
-          <option value="forest">森林绿</option>
-          <option value="coral">珊瑚橙</option>
-          <option value="mono">极简黑白</option>
-        </select>
-      </label>
-    </div>
-  </header>
 
-  <main>
-    <aside class="side">
-      <section class="panel">
-        <div class="panel-title">数据总览</div>
-        <div id="summary-grid" class="summary-grid"></div>
-      </section>
-      <section class="panel">
-        <div class="panel-title">分类分布</div>
-        <div id="distribution" class="distribution"></div>
-      </section>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-mark">30</span>
+        <div>
+          <strong>App Store Top 30</strong>
+          <small>每日数据看板</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button id="tab-list" class="nav-item active" type="button">
+          <span class="nav-dot"></span>
+          榜单明细
+        </button>
+        <button id="tab-region" class="nav-item" type="button">
+          <span class="nav-dot"></span>
+          地区汇总
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <label>主题
+          <select id="theme-select">
+            <option value="light">默认浅色</option>
+            <option value="dark">深色</option>
+            <option value="forest">森林绿</option>
+            <option value="coral">珊瑚橙</option>
+            <option value="mono">极简黑白</option>
+          </select>
+        </label>
+      </div>
     </aside>
 
-    <section class="panel table-panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">榜单明细</div>
-          <div id="table-count" class="panel-sub"></div>
+    <div class="content">
+      <header class="content-header">
+        <div class="toolbar">
+          <label>日期
+            <select id="date-select"></select>
+          </label>
+          <label>地区
+            <select id="region-select"></select>
+          </label>
+          <label>国家
+            <select id="country-select"></select>
+          </label>
+          <label>榜单
+            <select id="chart-select"></select>
+          </label>
+          <label>大类
+            <select id="category-select"></select>
+          </label>
+          <label>分类
+            <select id="subcategory-select"></select>
+          </label>
         </div>
-        <div class="panel-actions">
-          <div class="view-tabs">
-            <button id="tab-list" class="tab active" type="button">榜单明细</button>
-            <button id="tab-region" class="tab" type="button">地区汇总</button>
+      </header>
+
+      <main>
+        <aside class="side">
+          <section class="panel">
+            <div class="panel-title">数据总览</div>
+            <div id="summary-grid" class="summary-grid"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-title">分类分布</div>
+            <div id="distribution" class="distribution"></div>
+          </section>
+        </aside>
+
+        <section class="panel table-panel">
+          <div class="panel-head">
+            <div>
+              <div id="panel-title" class="panel-title">榜单明细</div>
+              <div id="table-count" class="panel-sub"></div>
+            </div>
+            <div class="search-box" id="search-box">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></svg>
+              <input id="search-input" type="search" placeholder="搜索应用或开发者">
+            </div>
           </div>
-          <div class="search-box" id="search-box">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></svg>
-            <input id="search-input" type="search" placeholder="搜索应用或开发者">
+          <div id="table-wrap" class="table-wrap">
+            <table>
+              <thead id="table-head"></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+            <div id="empty-state" class="empty-state hidden">暂无数据，请调整筛选条件或先运行抓取。</div>
           </div>
-        </div>
-      </div>
-      <div id="table-wrap" class="table-wrap">
-        <table>
-          <thead id="table-head">
-            <tr>
-              <th>排名</th>
-              <th>应用</th>
-              <th>开发者</th>
-              <th>分类</th>
-              <th>价格</th>
-              <th>评分</th>
-              <th>变化</th>
-            </tr>
-          </thead>
-          <tbody id="table-body"></tbody>
-        </table>
-        <div id="empty-state" class="empty-state hidden">暂无数据，请调整筛选条件或先运行抓取。</div>
-      </div>
-    </section>
-  </main>
+        </section>
+      </main>
+    </div>
+  </div>
 
   <div id="trend-drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">

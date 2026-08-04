@@ -41,6 +41,7 @@ const els = {
   searchBox: $("search-box"),
   theme: $("theme-select"),
   loading: $("loading-bar"),
+  panelTitle: $("panel-title"),
 };
 
 function esc(value) {
@@ -411,6 +412,7 @@ function renderRegionTable() {
 
 function switchView(view) {
   state.view = view;
+  els.panelTitle.textContent = view === "region" ? "地区汇总" : "榜单明细";
   applyViewState();
   renderMain();
 }

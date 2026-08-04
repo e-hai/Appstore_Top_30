@@ -6,7 +6,7 @@
   <title>App Store Top 30 数据看板</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body data-theme="light">
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark">30</span>
@@ -33,6 +33,15 @@
       </label>
       <label>分类
         <select id="subcategory-select"></select>
+      </label>
+      <label>主题
+        <select id="theme-select">
+          <option value="light">默认浅色</option>
+          <option value="dark">深色</option>
+          <option value="forest">森林绿</option>
+          <option value="coral">珊瑚橙</option>
+          <option value="mono">极简黑白</option>
+        </select>
       </label>
     </div>
   </header>

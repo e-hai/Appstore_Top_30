@@ -39,6 +39,7 @@ const els = {
   tabList: $("tab-list"),
   tabRegion: $("tab-region"),
   searchBox: $("search-box"),
+  theme: $("theme-select"),
 };
 
 function esc(value) {
@@ -98,6 +99,10 @@ function bindEvents() {
   els.drawerMask.addEventListener("click", closeTrend);
   els.tabList.addEventListener("click", () => switchView("list"));
   els.tabRegion.addEventListener("click", () => switchView("region"));
+  els.theme.addEventListener("change", () => {
+    document.body.dataset.theme = els.theme.value;
+    localStorage.setItem("appstore-theme", els.theme.value);
+  });
 }
 
 async function loadMeta() {
@@ -526,9 +531,18 @@ function renderTrendChart(rows) {
 }
 
 async function init() {
+  const savedTheme = localStorage.getItem("appstore-theme");
+  if (savedTheme) {
+    document.body.dataset.theme = savedTheme;
+    els.theme.value = savedTheme;
+  }
   bindEvents();
   try {
     const params = new URLSearchParams(location.search);
+    if (params.has("theme")) {
+      document.body.dataset.theme = params.get("theme");
+      els.theme.value = params.get("theme");
+    }
     if (params.get("view") === "region") {
       state.view = "region";
     }

@@ -40,6 +40,7 @@ const els = {
   tabRegion: $("tab-region"),
   searchBox: $("search-box"),
   theme: $("theme-select"),
+  loading: $("loading-bar"),
 };
 
 function esc(value) {
@@ -50,6 +51,10 @@ function esc(value) {
     '"': "&quot;",
     "'": "&#39;",
   })[ch]);
+}
+
+function setLoading(active) {
+  els.loading.classList.toggle("active", active);
 }
 
 async function api(path) {
@@ -225,19 +230,24 @@ function filterParams() {
 }
 
 async function refresh() {
-  const summaryUrl = `/api/summary?date=${encodeURIComponent(state.date)}`;
-  const rankingUrl =
-    `/api/rankings?date=${encodeURIComponent(state.date)}` +
-    `&country=${encodeURIComponent(state.country)}` +
-    `&chart=${encodeURIComponent(state.chart)}` +
-    filterParams();
-  const [summary, rankings] = await Promise.all([api(summaryUrl), api(rankingUrl)]);
-  state.summary = summary;
-  state.rows = rankings.rows;
-  state.hasPrevious = rankings.has_previous;
-  renderSummary();
-  renderDistribution();
-  renderMain();
+  setLoading(true);
+  try {
+    const summaryUrl = `/api/summary?date=${encodeURIComponent(state.date)}`;
+    const rankingUrl =
+      `/api/rankings?date=${encodeURIComponent(state.date)}` +
+      `&country=${encodeURIComponent(state.country)}` +
+      `&chart=${encodeURIComponent(state.chart)}` +
+      filterParams();
+    const [summary, rankings] = await Promise.all([api(summaryUrl), api(rankingUrl)]);
+    state.summary = summary;
+    state.rows = rankings.rows;
+    state.hasPrevious = rankings.has_previous;
+    renderSummary();
+    renderDistribution();
+    renderMain();
+  } finally {
+    setLoading(false);
+  }
 }
 
 function renderSummary() {
@@ -444,6 +454,12 @@ function closeTrend() {
 }
 
 function renderTrendChart(rows) {
+  const cssVar = (name, fallback) =>
+    getComputedStyle(document.body).getPropertyValue(name).trim() || fallback;
+  const accent = cssVar("--chart-1", "#0f766e");
+  const muted = cssVar("--muted-foreground", "#71717a");
+  const grid = cssVar("--border", "#e4e4e7");
+  const textColor = cssVar("--foreground", "#111111");
   const width = 620;
   const height = 280;
   const pad = { top: 24, right: 26, bottom: 42, left: 46 };
@@ -471,14 +487,14 @@ function renderTrendChart(rows) {
     line.setAttribute("y1", y);
     line.setAttribute("x2", width - pad.right);
     line.setAttribute("y2", y);
-    line.setAttribute("stroke", "#e6e9ed");
+    line.setAttribute("stroke", grid);
     line.setAttribute("stroke-dasharray", "3 4");
     svg.appendChild(line);
     const text = document.createElementNS(ns, "text");
     text.setAttribute("x", pad.left - 10);
     text.setAttribute("y", y + 4);
     text.setAttribute("text-anchor", "end");
-    text.setAttribute("fill", "#68707a");
+    text.setAttribute("fill", muted);
     text.setAttribute("font-size", "11");
     text.textContent = tick;
     svg.appendChild(text);
@@ -489,7 +505,7 @@ function renderTrendChart(rows) {
     const points = rows.map((row, index) => `${xAt(index)},${yAt(Number(row.best_rank))}`);
     path.setAttribute("d", `M${points.join(" L")}`);
     path.setAttribute("fill", "none");
-    path.setAttribute("stroke", "#0f766e");
+    path.setAttribute("stroke", accent);
     path.setAttribute("stroke-width", "2.5");
     path.setAttribute("stroke-linecap", "round");
     path.setAttribute("stroke-linejoin", "round");
@@ -503,14 +519,14 @@ function renderTrendChart(rows) {
     dot.setAttribute("cx", cx);
     dot.setAttribute("cy", cy);
     dot.setAttribute("r", "4");
-    dot.setAttribute("fill", "#0f766e");
+    dot.setAttribute("fill", accent);
     svg.appendChild(dot);
 
     const dateText = document.createElementNS(ns, "text");
     dateText.setAttribute("x", cx);
     dateText.setAttribute("y", height - 16);
     dateText.setAttribute("text-anchor", "middle");
-    dateText.setAttribute("fill", "#68707a");
+    dateText.setAttribute("fill", muted);
     dateText.setAttribute("font-size", "10");
     dateText.textContent = row.date.slice(5);
     svg.appendChild(dateText);
@@ -519,7 +535,7 @@ function renderTrendChart(rows) {
     rankText.setAttribute("x", cx);
     rankText.setAttribute("y", cy - 9);
     rankText.setAttribute("text-anchor", "middle");
-    rankText.setAttribute("fill", "#1b2028");
+    rankText.setAttribute("fill", textColor);
     rankText.setAttribute("font-size", "11");
     rankText.setAttribute("font-weight", "600");
     rankText.textContent = row.best_rank;

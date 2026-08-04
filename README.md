@@ -56,7 +56,7 @@ python3 -m appstore_top30 dashboard
 - 点击任意应用查看历史排名趋势
 - 黑白两种主题可切换：默认浅色、深色，选择会自动保存
 
-界面按 shadcn/Radix token 体系 + Linear 视觉节奏重构：左侧导航、语义化颜色/间距/字号/圆角/阴影、统一焦点态、加载态与空状态，数据图表也会跟随主题切换。
+界面参考 Android Material Design 3 与 iOS HIG：Material 语义色、状态层、层级与圆角，配合 iOS 大标题、毛玻璃材质和分组面板，黑白主题下保持一致的设计语言。
 
 自定义端口：
 

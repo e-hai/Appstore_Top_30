@@ -549,17 +549,21 @@ function renderTrendChart(rows) {
 }
 
 async function init() {
+  const applyTheme = (theme) => {
+    if (["light", "dark"].includes(theme)) {
+      document.body.dataset.theme = theme;
+      els.theme.value = theme;
+    }
+  };
   const savedTheme = localStorage.getItem("appstore-theme");
   if (savedTheme) {
-    document.body.dataset.theme = savedTheme;
-    els.theme.value = savedTheme;
+    applyTheme(savedTheme);
   }
   bindEvents();
   try {
     const params = new URLSearchParams(location.search);
     if (params.has("theme")) {
-      document.body.dataset.theme = params.get("theme");
-      els.theme.value = params.get("theme");
+      applyTheme(params.get("theme"));
     }
     if (params.get("view") === "region") {
       state.view = "region";

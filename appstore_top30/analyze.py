@@ -176,65 +176,6 @@ def build_all_summaries(
     return summaries
 
 
-def build_region_summary(
-    conn: sqlite3.Connection,
-    date: str,
-    region: str,
-    chart_type: str,
-) -> dict:
-    """Aggregate a region's countries into a single top-app view."""
-    countries = [c.code for c in config.iter_countries() if c.region == region]
-    rows: list[dict] = []
-    for country in countries:
-        rows.extend(_load_rows(conn, date, country, chart_type))
-
-    by_app: dict[int, list[dict]] = {}
-    for row in rows:
-        by_app.setdefault(row["app_id"], []).append(row)
-
-    apps = []
-    for app_id, app_rows in by_app.items():
-        ranks = [row["rank_no"] for row in app_rows]
-        best_row = min(app_rows, key=lambda row: row["rank_no"])
-        apps.append(
-            {
-                "app_id": app_id,
-                "name": app_rows[0].get("name"),
-                "developer": app_rows[0].get("developer"),
-                "icon_url": next(
-                    (row.get("icon_url") for row in app_rows if row.get("icon_url")),
-                    None,
-                ),
-                "country_count": len({row["country"] for row in app_rows}),
-                "avg_rank": round(sum(ranks) / len(ranks), 2),
-                "best_rank": min(ranks),
-                "best_country": best_row.get("country"),
-                "genres": ", ".join(sorted({row["genre_name"] for row in app_rows if row.get("genre_name")})),
-            }
-        )
-    apps.sort(key=lambda app: (-app["country_count"], app["avg_rank"], app["best_rank"]))
-
-    return {
-        "region": region,
-        "region_name": config.REGIONS[region]["name"],
-        "chart": chart_type,
-        "chart_name": config.CHART_TYPES[chart_type],
-        "country_count": len(countries),
-        "apps": apps[:30],
-    }
-
-
-def build_all_region_summaries(
-    conn: sqlite3.Connection,
-    date: str,
-) -> list[dict]:
-    summaries = []
-    for region in config.REGIONS:
-        for chart_type in config.CHART_TYPES:
-            summaries.append(build_region_summary(conn, date, region, chart_type))
-    return summaries
-
-
 def top_new_entries(changes: list[dict], limit: int = 20) -> list[dict]:
     return sorted(
         (c for c in changes if c["status"] == "new"),

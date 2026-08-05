@@ -236,7 +236,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
             return
         prev_date = db.get_previous_date(conn, date)
         summaries = analyze.build_all_summaries(conn, date, prev_date)
-        region_summaries = analyze.build_all_region_summaries(conn, date)
         compact_summaries = [
             {key: value for key, value in summary.items() if key != "changes"}
             for summary in summaries
@@ -247,7 +246,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "prev_date": prev_date,
                 "counts": db.snapshot_counts(conn, date),
                 "summaries": compact_summaries,
-                "region_summaries": region_summaries,
             }
         )
 

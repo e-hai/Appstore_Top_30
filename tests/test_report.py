@@ -47,9 +47,11 @@ class ReportTest(unittest.TestCase):
             html_path = report.generate_report("2026-08-04", db_path, reports_dir)
             self.assertTrue(html_path.exists())
             self.assertTrue((reports_dir / "2026-08-04" / "summary.csv").exists())
-            self.assertTrue((reports_dir / "2026-08-04" / "region_summary.csv").exists())
+            self.assertFalse((reports_dir / "2026-08-04" / "region_summary.csv").exists())
             self.assertTrue((reports_dir / "2026-08-04" / "rankings_us_free.csv").exists())
-            self.assertIn("App Store Top 30", html_path.read_text(encoding="utf-8"))
+            html = html_path.read_text(encoding="utf-8")
+            self.assertIn("App Store Top 30", html)
+            self.assertNotIn("地区汇总", html)
 
 
 if __name__ == "__main__":

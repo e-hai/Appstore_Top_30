@@ -11,7 +11,6 @@ const state = {
   rows: [],
   hasPrevious: false,
   search: "",
-  view: "list",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -36,12 +35,8 @@ const els = {
   trendMeta: $("trend-meta"),
   trendChart: $("trend-chart"),
   trendClose: $("trend-close"),
-  tabList: $("tab-list"),
-  tabRegion: $("tab-region"),
-  searchBox: $("search-box"),
   theme: $("theme-select"),
   loading: $("loading-bar"),
-  panelTitle: $("panel-title"),
 };
 
 function esc(value) {
@@ -103,8 +98,6 @@ function bindEvents() {
   });
   els.trendClose.addEventListener("click", closeTrend);
   els.drawerMask.addEventListener("click", closeTrend);
-  els.tabList.addEventListener("click", () => switchView("list"));
-  els.tabRegion.addEventListener("click", () => switchView("region"));
   els.theme.addEventListener("change", () => {
     document.body.dataset.theme = els.theme.value;
     localStorage.setItem("appstore-theme", els.theme.value);
@@ -246,7 +239,7 @@ async function refresh() {
     state.hasPrevious = rankings.has_previous;
     renderSummary();
     renderDistribution();
-    renderMain();
+    renderTable();
   } finally {
     setLoading(false);
   }
@@ -366,70 +359,6 @@ function renderTable() {
       showTrend(tr.dataset.appId, tr.dataset.appName, state.country);
     });
   });
-}
-
-function renderRegionTable() {
-  els.tableHead.innerHTML =
-    "<tr><th>排名</th><th>应用</th><th>开发者</th><th>国家数</th><th>平均排名</th><th>最佳排名</th><th>主要分类</th></tr>";
-  const regionSummary = (state.summary.region_summaries || []).find(
-    (s) => s.region === state.region && s.chart === state.chart
-  );
-  const rows = (regionSummary && regionSummary.apps) || [];
-  els.tableCount.textContent =
-    rows.length > 0
-      ? `Top ${rows.length} · 覆盖 ${regionSummary.country_count} 个国家`
-      : "暂无数据";
-  els.empty.classList.toggle("hidden", rows.length > 0);
-  els.tableBody.innerHTML = rows
-    .map(
-      (row, index) => `
-        <tr data-app-id="${row.app_id}" data-app-name="${esc(row.name)}" data-country="${esc(row.best_country)}">
-          <td class="rank-cell">${index + 1}</td>
-          <td>
-            <div class="app-cell">
-              ${row.icon_url ? `<img class="app-icon" src="${esc(row.icon_url)}" alt="">` : `<div class="app-icon">${esc((row.name || "?").slice(0, 1).toUpperCase())}</div>`}
-              <div>
-                <div class="app-name">${esc(row.name)}</div>
-                <div class="app-id">id ${row.app_id}</div>
-              </div>
-            </div>
-          </td>
-          <td class="dev-cell">${esc(row.developer)}</td>
-          <td class="num">${row.country_count}</td>
-          <td class="num">${row.avg_rank}</td>
-          <td class="num">${row.best_rank}</td>
-          <td>${esc(row.genres)}</td>
-        </tr>`
-    )
-    .join("");
-  els.tableBody.querySelectorAll("tr[data-app-id]").forEach((tr) => {
-    tr.addEventListener("click", () => {
-      els.tableBody.querySelectorAll("tr.selected").forEach((r) => r.classList.remove("selected"));
-      tr.classList.add("selected");
-      showTrend(tr.dataset.appId, tr.dataset.appName, tr.dataset.country || state.country);
-    });
-  });
-}
-
-function switchView(view) {
-  state.view = view;
-  els.panelTitle.textContent = view === "region" ? "地区汇总" : "榜单明细";
-  applyViewState();
-  renderMain();
-}
-
-function applyViewState() {
-  els.tabList.classList.toggle("active", state.view === "list");
-  els.tabRegion.classList.toggle("active", state.view === "region");
-  els.searchBox.classList.toggle("hidden", state.view !== "list");
-}
-
-function renderMain() {
-  if (state.view === "region") {
-    renderRegionTable();
-  } else {
-    renderTable();
-  }
 }
 
 async function showTrend(appId, name, country = state.country) {
@@ -566,9 +495,6 @@ async function init() {
     if (params.has("theme")) {
       applyTheme(params.get("theme"));
     }
-    if (params.get("view") === "region") {
-      state.view = "region";
-    }
     if (params.has("category")) {
       state.category = params.get("category");
     }
@@ -590,7 +516,6 @@ async function init() {
     populateChartSelect();
     populateCategorySelect();
     populateSubcategorySelect();
-    applyViewState();
     await refresh();
   } catch (error) {
     document.querySelector("main").innerHTML =

@@ -175,45 +175,6 @@ def write_summary_csv(summaries: list[dict], path: Path) -> None:
             )
 
 
-def write_region_summary_csv(summaries: list[dict], path: Path) -> None:
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(
-            [
-                "region",
-                "region_name",
-                "chart_type",
-                "rank",
-                "app_id",
-                "name",
-                "developer",
-                "country_count",
-                "avg_rank",
-                "best_rank",
-                "best_country",
-                "genres",
-            ]
-        )
-        for summary in summaries:
-            for index, app in enumerate(summary["apps"], start=1):
-                writer.writerow(
-                    [
-                        summary["region"],
-                        summary["region_name"],
-                        summary["chart"],
-                        index,
-                        app["app_id"],
-                        app.get("name"),
-                        app.get("developer"),
-                        app["country_count"],
-                        app["avg_rank"],
-                        app["best_rank"],
-                        app.get("best_country"),
-                        app.get("genres"),
-                    ]
-                )
-
-
 def _esc(value) -> str:
     return html.escape("" if value is None else str(value))
 
@@ -386,60 +347,6 @@ def _country_section(
     )
 
 
-def _region_table(summary: dict) -> str:
-    rows = summary["apps"][:15]
-    if not rows:
-        return "<p class=\"empty\">该地区暂无榜单数据</p>"
-    lines = [
-        "<table><thead><tr>"
-        "<th>排名</th><th>应用</th><th>开发者</th><th>国家数</th><th>平均排名</th><th>最佳排名</th><th>主要分类</th>"
-        "</tr></thead><tbody>"
-    ]
-    for index, app in enumerate(rows, start=1):
-        lines.append(
-            "<tr>"
-            f"<td>{index}</td>"
-            f"<td>{_esc(app.get('name'))}</td>"
-            f"<td>{_esc(app.get('developer'))}</td>"
-            f"<td>{app['country_count']}</td>"
-            f"<td>{_esc(app['avg_rank'])}</td>"
-            f"<td>{app['best_rank']}</td>"
-            f"<td>{_esc(app.get('genres'))}</td>"
-            "</tr>"
-        )
-    lines.append("</tbody></table>")
-    return "\n".join(lines)
-
-
-def _region_sections(region_summaries: list[dict]) -> str:
-    by_region: dict[str, list[dict]] = {}
-    for summary in region_summaries:
-        by_region.setdefault(summary["region"], []).append(summary)
-
-    sections = []
-    for region in config.REGIONS:
-        group = by_region.get(region, [])
-        if not group:
-            continue
-        charts_html = []
-        for summary in group:
-            charts_html.append(
-                "<details class=\"chart\"><summary>"
-                f"{_esc(summary['chart_name'])}"
-                f"<span class=\"meta\">覆盖 {summary['country_count']} 个国家</span></summary>"
-                "<div class=\"chart-body\">"
-                + _region_table(summary)
-                + "</div></details>"
-            )
-        sections.append(
-            "<section class=\"region\">"
-            f"<h2>{_esc(config.REGIONS[region]['name'])}</h2>"
-            + "\n".join(charts_html)
-            + "</section>"
-        )
-    return "\n".join(sections)
-
-
 def _summary_cards(summaries: list[dict], counts: dict, date: str, prev_date: str | None) -> str:
     total_new = sum(s["new"] for s in summaries)
     total_left = sum(s["left"] for s in summaries)
@@ -480,7 +387,6 @@ def _file_links(report_dir: Path, summaries: list[dict]) -> str:
             "</li>"
         )
     items.append("<li><a href=\"summary.csv\">summary.csv</a></li>")
-    items.append("<li><a href=\"region_summary.csv\">region_summary.csv</a></li>")
     return "<ul class=\"files\">" + "\n".join(items) + "</ul>"
 
 
@@ -490,7 +396,6 @@ def _render_html(
     summaries: list[dict],
     counts: dict,
     report_dir: Path,
-    region_summaries: list[dict],
 ) -> str:
     by_region: dict[str, list[dict]] = {}
     for summary in summaries:
@@ -565,8 +470,6 @@ footer {{ max-width: 1200px; margin: 0 auto; padding: 0 32px 40px; color: #6b728
 {_summary_cards(summaries, counts, date, prev_date)}
 <h2>数据文件</h2>
 {_file_links(report_dir, summaries)}
-<h2>地区汇总</h2>
-{_region_sections(region_summaries)}
 <h2>国家明细</h2>
 {regions_joined}
 </main>
@@ -586,21 +489,17 @@ def generate_report(
     report_dir.mkdir(parents=True, exist_ok=True)
     for path in list(report_dir.glob("rankings_*.csv")) + list(report_dir.glob("changes_*.csv")) + list(
         report_dir.glob("summary.csv")
-    ) + list(report_dir.glob("region_summary.csv")) + list(
-        report_dir.glob("report_*.html")
-    ):
+    ) + list(report_dir.glob("region_summary.csv")) + list(report_dir.glob("report_*.html")):
         path.unlink()
 
     conn = db.connect(db_path)
     try:
         prev_date = db.get_previous_date(conn, date)
         summaries = analyze.build_all_summaries(conn, date, prev_date)
-        region_summaries = analyze.build_all_region_summaries(conn, date)
         counts = db.snapshot_counts(conn, date)
         active_summaries = [s for s in summaries if s["entries"] > 0]
 
         write_summary_csv(summaries, report_dir / "summary.csv")
-        write_region_summary_csv(region_summaries, report_dir / "region_summary.csv")
         for summary in active_summaries:
             country = summary["country"]
             chart = summary["chart"]
@@ -611,7 +510,7 @@ def generate_report(
 
     html_path = report_dir / f"report_{date}.html"
     html_path.write_text(
-        _render_html(date, prev_date, active_summaries, counts, report_dir, region_summaries),
+        _render_html(date, prev_date, active_summaries, counts, report_dir),
         encoding="utf-8",
     )
     return html_path

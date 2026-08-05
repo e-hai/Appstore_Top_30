@@ -70,33 +70,5 @@ class AnalyzeTest(unittest.TestCase):
             finally:
                 conn.close()
 
-    def test_build_region_summary(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            db_path = Path(tmp) / "test.db"
-            db.init_db(db_path)
-            conn = db.connect(db_path)
-            try:
-                with conn:
-                    db.replace_snapshot(
-                        conn,
-                        "2026-08-04",
-                        "north_america",
-                        "us",
-                        "free",
-                        "6014",
-                        "Games",
-                        [_row(1, 2), _row(2, 1)],
-                        "2026-08-04T00:00:00+08:00",
-                    )
-                summary = analyze.build_region_summary(conn, "2026-08-04", "north_america", "free")
-                self.assertEqual(summary["country_count"], 2)
-                self.assertEqual(summary["apps"][0]["app_id"], 2)
-                self.assertEqual(summary["apps"][0]["best_rank"], 1)
-                self.assertEqual(summary["apps"][0]["icon_url"], "icon-2.png")
-                self.assertEqual(summary["apps"][1]["app_id"], 1)
-            finally:
-                conn.close()
-
-
 if __name__ == "__main__":
     unittest.main()

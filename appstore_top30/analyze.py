@@ -24,9 +24,11 @@ def _load_rows(
         """
         SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
                r.currency, r.rating, r.rating_count,
-               s.genre_id, s.genre_name, s.country AS country
+               s.genre_id, s.genre_name, s.country AS country,
+               a.icon_url
         FROM rankings r
         JOIN snapshots s ON s.id = r.snapshot_id
+        LEFT JOIN apps a ON a.app_id = r.app_id
         WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
         ORDER BY s.genre_id, r.rank_no
         """,
@@ -199,6 +201,10 @@ def build_region_summary(
                 "app_id": app_id,
                 "name": app_rows[0].get("name"),
                 "developer": app_rows[0].get("developer"),
+                "icon_url": next(
+                    (row.get("icon_url") for row in app_rows if row.get("icon_url")),
+                    None,
+                ),
                 "country_count": len({row["country"] for row in app_rows}),
                 "avg_rank": round(sum(ranks) / len(ranks), 2),
                 "best_rank": min(ranks),

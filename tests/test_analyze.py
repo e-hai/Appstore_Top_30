@@ -6,7 +6,7 @@ from pathlib import Path
 from appstore_top30 import analyze, db
 
 
-def _row(app_id, rank, genre="6014", rating=4.0, price=0.0):
+def _row(app_id, rank, genre="6014", rating=4.0, price=0.0, icon_url=None):
     return {
         "app_id": app_id,
         "rank": rank,
@@ -19,6 +19,7 @@ def _row(app_id, rank, genre="6014", rating=4.0, price=0.0):
         "rating_count": 10,
         "genre_id": genre,
         "genre_name": "Games",
+        "icon_url": icon_url or f"icon-{app_id}.png",
     }
 
 
@@ -91,6 +92,7 @@ class AnalyzeTest(unittest.TestCase):
                 self.assertEqual(summary["country_count"], 1)
                 self.assertEqual(summary["apps"][0]["app_id"], 2)
                 self.assertEqual(summary["apps"][0]["best_rank"], 1)
+                self.assertEqual(summary["apps"][0]["icon_url"], "icon-2.png")
                 self.assertEqual(summary["apps"][1]["app_id"], 1)
             finally:
                 conn.close()

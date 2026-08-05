@@ -386,7 +386,7 @@ function renderRegionTable() {
           <td class="rank-cell">${index + 1}</td>
           <td>
             <div class="app-cell">
-              <div class="app-icon">${esc((row.name || "?").slice(0, 1).toUpperCase())}</div>
+              ${row.icon_url ? `<img class="app-icon" src="${esc(row.icon_url)}" alt="">` : `<div class="app-icon">${esc((row.name || "?").slice(0, 1).toUpperCase())}</div>`}
               <div>
                 <div class="app-name">${esc(row.name)}</div>
                 <div class="app-id">id ${row.app_id}</div>

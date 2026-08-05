@@ -152,6 +152,36 @@ base64 < ~/.config/rclone/rclone.conf
 
 如果希望完全用 Google 生态，也可以改用 Google Cloud 的 Cloud Scheduler + Cloud Run，但 Google One 并不包含这些计算资源，需要单独的 GCP 免费额度或付费项目。
 
+### GitHub Actions 定时没有触发时的兜底
+
+GitHub 对个人账号的 `schedule` 触发不保证准点，也出现过整段不触发的情况；手动 `workflow_dispatch` 不受影响。仓库是公开、未归档且 workflow 为 `active` 时，一般不是配置问题，可以先用以下方式确认：
+
+```bash
+# 查看是否有 schedule 事件触发的运行
+curl -sS "https://api.github.com/repos/e-hai/Appstore_Top_30/actions/runs?event=schedule"
+
+# 查看 workflow 状态
+curl -sS "https://api.github.com/repos/e-hai/Appstore_Top_30/actions/workflows/daily.yml"
+```
+
+临时补一次数据可以到仓库 `Actions -> daily-appstore-top30 -> Run workflow` 手动运行，或本地执行：
+
+```bash
+GITHUB_PAT=<你的 PAT> ./scripts/trigger_workflow.sh
+```
+
+需要创建一个 GitHub Personal Access Token，权限勾选 `workflow`。长期兜底建议用外部定时服务（如 cron-job.org、Google Apps Script 的每日触发器）每天调用同一个 `workflow_dispatch` 接口：
+
+```text
+POST https://api.github.com/repos/e-hai/Appstore_Top_30/actions/workflows/daily.yml/dispatches
+Authorization: Bearer <PAT>
+Content-Type: application/json
+
+{"ref":"main"}
+```
+
+另外，公开仓库的定时工作流在 60 天没有任何运行后会被 GitHub 自动停用，需要手动去 Actions 页面重新启用。
+
 ## 数据说明
 
 - 榜单数据来自 Apple 的 WebObjects charts 接口：`itunes.apple.com/WebObjects/MZStoreServices.woa/ws/charts?cc=...&g=...&name=...`

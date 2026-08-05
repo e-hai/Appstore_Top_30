@@ -190,6 +190,12 @@ curl -sS "https://api.github.com/repos/e-hai/Appstore_Top_30/actions/workflows/d
 GITHUB_PAT=<你的 PAT> ./scripts/trigger_workflow.sh
 ```
 
+也可以通过环境变量指定日期和商店：
+
+```bash
+GITHUB_DATE=2026-08-05 GITHUB_STORES=play GITHUB_PAT=<你的 PAT> ./scripts/trigger_workflow.sh
+```
+
 手动触发时可以在 Actions 页面选择日期和商店：
 
 - `date`：指定 `YYYY-MM-DD`，留空则抓取当天

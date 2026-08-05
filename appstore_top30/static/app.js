@@ -185,20 +185,24 @@ function populateCategorySelect() {
 function populateSubcategorySelect() {
   els.subcategory.innerHTML = "";
   let genres = [];
-  let placeholder = "全部分类";
+  let placeholder = "";
   if (state.category === "apps") {
     genres = state.meta.app_genres || [];
-    placeholder = "全部应用";
+    if (!genres.some((g) => g.id === state.subcategory) && genres.length > 0) {
+      state.subcategory = genres[0].id;
+    }
   } else if (state.category === "games") {
     genres = state.meta.game_genres || [];
     placeholder = "全部游戏";
   } else if (state.category === "root") {
     placeholder = "总榜";
   }
-  const all = document.createElement("option");
-  all.value = "";
-  all.textContent = placeholder;
-  els.subcategory.appendChild(all);
+  if (placeholder) {
+    const all = document.createElement("option");
+    all.value = "";
+    all.textContent = placeholder;
+    els.subcategory.appendChild(all);
+  }
   for (const genre of genres) {
     const option = document.createElement("option");
     option.value = genre.id;
@@ -217,9 +221,7 @@ function filterParams() {
     return "&genre=36";
   }
   if (state.category === "apps") {
-    return state.subcategory
-      ? `&genre=${encodeURIComponent(state.subcategory)}`
-      : "&group=apps";
+    return `&genre=${encodeURIComponent(state.subcategory)}`;
   }
   if (state.category === "games") {
     return state.subcategory

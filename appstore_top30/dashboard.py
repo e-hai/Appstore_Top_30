@@ -29,7 +29,6 @@ def _query_rankings(
     country: str,
     chart_type: str,
     genre_id: str | None = None,
-    group: str | None = None,
 ) -> list[dict]:
     sql = """
         SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
@@ -41,15 +40,7 @@ def _query_rankings(
         WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
     """
     params: list = [date, country, chart_type]
-    if group == "apps":
-        placeholders = ",".join("?" for _ in config.APP_CATEGORY_IDS)
-        sql += f" AND s.genre_id IN ({placeholders})"
-        params.extend(config.APP_CATEGORY_IDS)
-    elif group == "games":
-        placeholders = ",".join("?" for _ in config.GAME_SUBGENRE_IDS)
-        sql += f" AND s.genre_id IN ({placeholders})"
-        params.extend(config.GAME_SUBGENRE_IDS)
-    elif genre_id:
+    if genre_id:
         sql += " AND s.genre_id = ?"
         params.append(genre_id)
     sql += " ORDER BY s.genre_id, r.rank_no"
@@ -220,14 +211,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "date, country, chart are required"}, status=400)
             return
         genre = self._param(query, "genre") or None
-        group = self._param(query, "group") or None
-        if group not in {None, "apps", "games"}:
-            self._send_json({"error": "invalid group"}, status=400)
-            return
-        curr_rows = _query_rankings(conn, date, country, chart, genre, group)
+        curr_rows = _query_rankings(conn, date, country, chart, genre)
         prev_date = db.get_previous_date(conn, date)
         prev_rows = (
-            _query_rankings(conn, prev_date, country, chart, genre, group)
+            _query_rankings(conn, prev_date, country, chart, genre)
             if prev_date
             else []
         )

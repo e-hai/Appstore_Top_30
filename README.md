@@ -190,6 +190,13 @@ curl -sS "https://api.github.com/repos/e-hai/Appstore_Top_30/actions/workflows/d
 GITHUB_PAT=<你的 PAT> ./scripts/trigger_workflow.sh
 ```
 
+手动触发时可以在 Actions 页面选择日期和商店：
+
+- `date`：指定 `YYYY-MM-DD`，留空则抓取当天
+- `stores`：选择 `both`（App Store + Google Play）、`app_store` 或 `play`
+
+选择 `play` 时会只抓取 Google Play 官方榜单并生成 `play_report_*.html`。
+
 需要创建一个 GitHub Personal Access Token，权限勾选 `workflow`。长期兜底建议用外部定时服务（如 cron-job.org、Google Apps Script 的每日触发器）每天调用同一个 `workflow_dispatch` 接口：
 
 ```text

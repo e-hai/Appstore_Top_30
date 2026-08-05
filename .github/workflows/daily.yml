@@ -4,6 +4,21 @@ on:
   schedule:
     - cron: "0 1 * * *"
   workflow_dispatch:
+    inputs:
+      date:
+        description: "数据日期 (YYYY-MM-DD)，留空则用今天"
+        required: false
+        type: string
+        default: ""
+      stores:
+        description: "采集商店"
+        required: false
+        type: choice
+        default: both
+        options:
+          - both
+          - app_store
+          - play
 
 permissions:
   contents: read
@@ -11,6 +26,9 @@ permissions:
 jobs:
   collect:
     runs-on: ubuntu-latest
+    env:
+      SNAP_DATE: ${{ inputs.date }}
+      STORES: ${{ inputs.stores }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -61,11 +79,27 @@ jobs:
           aws s3 cp "s3://$R2_BUCKET/appstore-top30/data/appstore_top30.db" data/appstore_top30.db || true
 
       - name: Run daily collection
-        run: python3 -m appstore_top30 run
+        if: env.STORES == '' || env.STORES == 'both' || env.STORES == 'app_store'
+        run: |
+          DATE_ARG=""
+          if [ -n "$SNAP_DATE" ]; then DATE_ARG="-d $SNAP_DATE"; fi
+          python3 -m appstore_top30 run $DATE_ARG
 
       - name: Run Google Play collection
         continue-on-error: true
-        run: python3 -m appstore_top30 play
+        if: env.STORES == '' || env.STORES == 'both' || env.STORES == 'play'
+        run: |
+          DATE_ARG=""
+          if [ -n "$SNAP_DATE" ]; then DATE_ARG="-d $SNAP_DATE"; fi
+          python3 -m appstore_top30 play $DATE_ARG
+
+      - name: Generate Google Play report
+        continue-on-error: true
+        if: env.STORES == '' || env.STORES == 'both' || env.STORES == 'play'
+        run: |
+          DATE_ARG=""
+          if [ -n "$SNAP_DATE" ]; then DATE_ARG="-d $SNAP_DATE"; fi
+          python3 -m appstore_top30 report $DATE_ARG --store play
 
       - name: Upload database and reports to R2
         env:

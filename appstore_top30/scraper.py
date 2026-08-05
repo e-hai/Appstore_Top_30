@@ -246,12 +246,12 @@ def fetch_day(
     db.init_db(db_path)
     region_keys = regions or list(config.REGIONS.keys())
     chart_keys = charts or list(config.CHART_TYPES.keys())
+    countries = [c for c in config.iter_countries() if c.region in region_keys]
     conn = db.connect(db_path)
     try:
-        db.clear_snapshots(conn, date, region_keys, chart_keys)
+        db.clear_snapshots(conn, date, [c.code for c in countries], chart_keys)
     finally:
         conn.close()
-    countries = [c for c in config.iter_countries() if c.region in region_keys]
 
     stats = {
         "date": date,

@@ -64,19 +64,19 @@ def init_db(db_path: Path) -> None:
 def clear_snapshots(
     conn: sqlite3.Connection,
     date: str,
-    regions: list[str],
+    countries: list[str],
     charts: list[str],
 ) -> None:
     """Remove snapshots for a date before a fresh fetch to avoid stale data."""
-    placeholders_regions = ",".join("?" for _ in regions)
+    placeholders_countries = ",".join("?" for _ in countries)
     placeholders_charts = ",".join("?" for _ in charts)
     with conn:
         conn.execute(
             f"""
             DELETE FROM snapshots
-            WHERE date = ? AND region IN ({placeholders_regions}) AND chart_type IN ({placeholders_charts})
+            WHERE date = ? AND country IN ({placeholders_countries}) AND chart_type IN ({placeholders_charts})
             """,
-            (date, *regions, *charts),
+            (date, *countries, *charts),
         )
 
 

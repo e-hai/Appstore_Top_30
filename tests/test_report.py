@@ -20,6 +20,21 @@ def _row(app_id, rank):
     }
 
 
+def _play_row(app_id, rank):
+    return {
+        "app_id": app_id,
+        "rank": rank,
+        "name": f"Play App {app_id}",
+        "developer": "Dev",
+        "price_amount": 0.0,
+        "currency": "USD",
+        "rating": 4.5,
+        "rating_count": None,
+        "genre_id": "GAME",
+        "genre_name": "Games",
+    }
+
+
 class ReportTest(unittest.TestCase):
     def test_generate_report(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -52,6 +67,36 @@ class ReportTest(unittest.TestCase):
             html = html_path.read_text(encoding="utf-8")
             self.assertIn("App Store Top 30", html)
             self.assertNotIn("地区汇总", html)
+
+    def test_generate_play_report(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            db_path = root / "data" / "test.db"
+            reports_dir = root / "reports"
+            db.init_db(db_path)
+            conn = db.connect(db_path)
+            try:
+                with conn:
+                    db.replace_play_snapshot(
+                        conn,
+                        "2026-08-05",
+                        "us",
+                        "us",
+                        "free",
+                        "GAME",
+                        "Games",
+                        [_play_row("com.example.a", 1)],
+                        "2026-08-05T00:00:00+08:00",
+                    )
+            finally:
+                conn.close()
+
+            html_path = report.generate_report("2026-08-05", db_path, reports_dir, store="play")
+            self.assertEqual(html_path.name, "play_report_2026-08-05.html")
+            self.assertTrue((reports_dir / "2026-08-05" / "play_summary.csv").exists())
+            self.assertTrue((reports_dir / "2026-08-05" / "play_rankings_us_free.csv").exists())
+            html = html_path.read_text(encoding="utf-8")
+            self.assertIn("Google Play Top 30", html)
 
 
 if __name__ == "__main__":

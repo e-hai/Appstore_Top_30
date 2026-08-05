@@ -23,6 +23,23 @@ def _row(app_id, rank, genre="6014", rating=4.0, price=0.0, icon_url=None):
     }
 
 
+def _play_row(app_id, rank, category="GAME", rating=4.0, price=0.0, icon_url=None):
+    return {
+        "app_id": app_id,
+        "rank": rank,
+        "rank_no": rank,
+        "name": f"Play App {app_id}",
+        "developer": "Dev",
+        "price_amount": price,
+        "currency": "USD",
+        "rating": rating,
+        "rating_count": None,
+        "genre_id": category,
+        "genre_name": "Games",
+        "icon_url": icon_url or f"icon-{app_id}.png",
+    }
+
+
 class AnalyzeTest(unittest.TestCase):
     def test_compare_rankings(self):
         prev_rows = [_row(1, 1), _row(2, 2), _row(3, 3), _row(4, 4)]
@@ -67,6 +84,39 @@ class AnalyzeTest(unittest.TestCase):
                 self.assertEqual(summary["left"], 1)
                 self.assertEqual(summary["up"], 1)
                 self.assertEqual(summary["down"], 1)
+            finally:
+                conn.close()
+
+    def test_build_country_chart_summary_for_play(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db_path = Path(tmp) / "test.db"
+            db.init_db(db_path)
+            conn = db.connect(db_path)
+            try:
+                for day, rows in [
+                    (date(2026, 8, 4), [_play_row("com.example.a", 1), _play_row("com.example.b", 2)]),
+                    (date(2026, 8, 5), [_play_row("com.example.b", 1), _play_row("com.example.c", 2)]),
+                ]:
+                    with conn:
+                        db.replace_play_snapshot(
+                            conn,
+                            day.isoformat(),
+                            "us",
+                            "us",
+                            "free",
+                            "GAME",
+                            "Games",
+                            rows,
+                            "2026-08-05T00:00:00+08:00",
+                        )
+
+                summary = analyze.build_country_chart_summary(
+                    conn, "2026-08-05", "2026-08-04", "us", "free", store="play"
+                )
+                self.assertEqual(summary["entries"], 2)
+                self.assertEqual(summary["new"], 1)
+                self.assertEqual(summary["left"], 1)
+                self.assertEqual(summary["genres"], 1)
             finally:
                 conn.close()
 

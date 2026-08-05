@@ -58,6 +58,42 @@ class DbTest(unittest.TestCase):
             finally:
                 conn.close()
 
+    def test_play_snapshot_helpers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db_path = Path(tmp) / "test.db"
+            db.init_db(db_path)
+            conn = db.connect(db_path)
+            try:
+                row = {
+                    "app_id": "com.example.one",
+                    "rank": 1,
+                    "name": "One",
+                    "developer": "Dev",
+                    "price_amount": 0.0,
+                    "currency": "USD",
+                    "rating": 4.5,
+                    "rating_count": None,
+                }
+                with conn:
+                    db.replace_play_snapshot(
+                        conn,
+                        "2026-08-05",
+                        "north_america",
+                        "us",
+                        "free",
+                        "GAME",
+                        "游戏",
+                        [row],
+                        "2026-08-05T00:00:00+08:00",
+                    )
+                self.assertEqual(db.get_previous_date(conn, "2026-08-06", store="play"), "2026-08-05")
+                self.assertEqual(db.snapshot_counts(conn, "2026-08-05", store="play")["entries"], 1)
+                with conn:
+                    db.clear_play_snapshots(conn, "2026-08-05", ["us"], ["free"])
+                self.assertEqual(db.snapshot_counts(conn, "2026-08-05", store="play")["snapshots"], 0)
+            finally:
+                conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

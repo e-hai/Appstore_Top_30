@@ -21,24 +21,45 @@ def _query_rankings(
     date: str,
     country: str,
     chart_type: str,
+    store: str = "app_store",
 ) -> list[dict]:
-    rows = conn.execute(
-        """
-        SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
-               r.currency, r.rating, r.rating_count,
-               s.genre_id, s.genre_name, a.bundle_id, a.icon_url
-        FROM rankings r
-        JOIN snapshots s ON s.id = r.snapshot_id
-        LEFT JOIN apps a ON a.app_id = r.app_id
-        WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
-        ORDER BY s.genre_id, r.rank_no
-        """,
-        (date, country, chart_type),
-    ).fetchall()
+    if store == "play":
+        rows = conn.execute(
+            """
+            SELECT r.rank_no, r.package_name AS app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.category_id AS genre_id, s.category_name AS genre_name,
+                   NULL AS bundle_id, a.icon_url
+            FROM play_rankings r
+            JOIN play_snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN play_apps a ON a.package_name = r.package_name
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+            ORDER BY s.category_id, r.rank_no
+            """,
+            (date, country, chart_type),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """
+            SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.genre_id, s.genre_name, a.bundle_id, a.icon_url
+            FROM rankings r
+            JOIN snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN apps a ON a.app_id = r.app_id
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+            ORDER BY s.genre_id, r.rank_no
+            """,
+            (date, country, chart_type),
+        ).fetchall()
     return [
         {
             **dict(row),
-            "genre_name": config.genre_display_name(row["genre_id"], row["genre_name"]),
+            "genre_name": (
+                config.play_category_display_name(row["genre_id"], row["genre_name"])
+                if store == "play"
+                else config.genre_display_name(row["genre_id"], row["genre_name"])
+            ),
         }
         for row in rows
     ]
@@ -50,8 +71,9 @@ def write_rankings_csv(
     country: str,
     chart_type: str,
     path: Path,
+    store: str = "app_store",
 ) -> None:
-    rows = _query_rankings(conn, date, country, chart_type)
+    rows = _query_rankings(conn, date, country, chart_type, store=store)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(
@@ -374,19 +396,20 @@ def _summary_cards(summaries: list[dict], counts: dict, date: str, prev_date: st
     return "<div class=\"cards\">" + "\n".join(items) + "</div>"
 
 
-def _file_links(report_dir: Path, summaries: list[dict]) -> str:
+def _file_links(report_dir: Path, summaries: list[dict], prefix: str = "") -> str:
     items = []
+    label = f"{prefix}_" if prefix else ""
     for summary in summaries:
         country = summary["country"]
         chart = summary["chart"]
         items.append(
             "<li>"
-            f"<a href=\"rankings_{country}_{chart}.csv\">rankings_{country}_{chart}.csv</a>"
+            f"<a href=\"{label}rankings_{country}_{chart}.csv\">{label}rankings_{country}_{chart}.csv</a>"
             " · "
-            f"<a href=\"changes_{country}_{chart}.csv\">changes_{country}_{chart}.csv</a>"
+            f"<a href=\"{label}changes_{country}_{chart}.csv\">{label}changes_{country}_{chart}.csv</a>"
             "</li>"
         )
-    items.append("<li><a href=\"summary.csv\">summary.csv</a></li>")
+    items.append(f"<li><a href=\"{label}summary.csv\">{label}summary.csv</a></li>")
     return "<ul class=\"files\">" + "\n".join(items) + "</ul>"
 
 
@@ -396,6 +419,7 @@ def _render_html(
     summaries: list[dict],
     counts: dict,
     report_dir: Path,
+    store: str = "app_store",
 ) -> str:
     by_region: dict[str, list[dict]] = {}
     for summary in summaries:
@@ -419,6 +443,8 @@ def _render_html(
                 + "</section>"
             )
 
+    title = "Google Play Top 30 每日分析" if store == "play" else "App Store Top 30 每日分析"
+    prefix = "play" if store == "play" else ""
     header_subtitle = (
         f"数据日期 {date}" + (f" · 对比 {prev_date}" if prev_date else " · 首次采集，暂无环比")
     )
@@ -428,7 +454,7 @@ def _render_html(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>App Store Top 30 每日分析 - {_esc(date)}</title>
+<title>{_esc(title)} - {_esc(date)}</title>
 <style>
 :root {{ color-scheme: light; }}
 body {{ font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; color: #1f2328; background: #f6f7f9; }}
@@ -463,17 +489,17 @@ footer {{ max-width: 1200px; margin: 0 auto; padding: 0 32px 40px; color: #6b728
 </head>
 <body>
 <header>
-<h1>App Store Top 30 每日分析</h1>
+<h1>{_esc(title)}</h1>
 <p>{_esc(header_subtitle)}</p>
 </header>
 <main>
 {_summary_cards(summaries, counts, date, prev_date)}
 <h2>数据文件</h2>
-{_file_links(report_dir, summaries)}
+{_file_links(report_dir, summaries, prefix)}
 <h2>国家明细</h2>
 {regions_joined}
 </main>
-<footer>数据来源：Apple iTunes RSS / Lookup 公开接口；报告为本地生成，仅用于个人分析。</footer>
+<footer>数据来源：{"Google Play 官方榜单接口" if store == "play" else "Apple iTunes RSS / Lookup 公开接口"}；报告为本地生成，仅用于个人分析。</footer>
 </body>
 </html>
 """
@@ -483,34 +509,52 @@ def generate_report(
     date: str,
     db_path: Path = config.DB_PATH,
     reports_dir: Path = config.REPORTS_DIR,
+    store: str = "app_store",
 ) -> Path:
     db.init_db(db_path)
     report_dir = reports_dir / date
     report_dir.mkdir(parents=True, exist_ok=True)
-    for path in list(report_dir.glob("rankings_*.csv")) + list(report_dir.glob("changes_*.csv")) + list(
-        report_dir.glob("summary.csv")
-    ) + list(report_dir.glob("region_summary.csv")) + list(report_dir.glob("report_*.html")):
-        path.unlink()
+    prefix = "play_" if store == "play" else ""
+    patterns = [
+        f"{prefix}rankings_*.csv",
+        f"{prefix}changes_*.csv",
+        f"{prefix}summary.csv",
+        f"{prefix}region_summary.csv",
+        f"{prefix}report_*.html",
+    ]
+    for pattern in patterns:
+        for path in report_dir.glob(pattern):
+            path.unlink()
 
     conn = db.connect(db_path)
     try:
-        prev_date = db.get_previous_date(conn, date)
-        summaries = analyze.build_all_summaries(conn, date, prev_date)
-        counts = db.snapshot_counts(conn, date)
+        prev_date = db.get_previous_date(conn, date, store=store)
+        summaries = analyze.build_all_summaries(conn, date, prev_date, store=store)
+        counts = db.snapshot_counts(conn, date, store=store)
         active_summaries = [s for s in summaries if s["entries"] > 0]
 
-        write_summary_csv(summaries, report_dir / "summary.csv")
+        write_summary_csv(summaries, report_dir / f"{prefix}summary.csv")
         for summary in active_summaries:
             country = summary["country"]
             chart = summary["chart"]
-            write_rankings_csv(conn, date, country, chart, report_dir / f"rankings_{country}_{chart}.csv")
-            write_changes_csv(summary.get("changes", []), report_dir / f"changes_{country}_{chart}.csv")
+            write_rankings_csv(
+                conn,
+                date,
+                country,
+                chart,
+                report_dir / f"{prefix}rankings_{country}_{chart}.csv",
+                store=store,
+            )
+            write_changes_csv(
+                summary.get("changes", []),
+                report_dir / f"{prefix}changes_{country}_{chart}.csv",
+            )
     finally:
         conn.close()
 
-    html_path = report_dir / f"report_{date}.html"
+    html_path = report_dir / f"{prefix}report_{date}.html"
     html_path.write_text(
-        _render_html(date, prev_date, active_summaries, counts, report_dir),
+        _render_html(date, prev_date, active_summaries, counts, report_dir, store=store),
         encoding="utf-8",
     )
     return html_path

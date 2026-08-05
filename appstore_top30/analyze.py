@@ -19,25 +19,46 @@ def _load_rows(
     date: str,
     country: str,
     chart_type: str,
+    store: str = "app_store",
 ) -> list[dict]:
-    rows = conn.execute(
-        """
-        SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
-               r.currency, r.rating, r.rating_count,
-               s.genre_id, s.genre_name, s.country AS country,
-               a.icon_url
-        FROM rankings r
-        JOIN snapshots s ON s.id = r.snapshot_id
-        LEFT JOIN apps a ON a.app_id = r.app_id
-        WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
-        ORDER BY s.genre_id, r.rank_no
-        """,
-        (date, country, chart_type),
-    ).fetchall()
+    if store == "play":
+        rows = conn.execute(
+            """
+            SELECT r.rank_no, r.package_name AS app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.category_id AS genre_id, s.category_name AS genre_name,
+                   s.country AS country, a.icon_url
+            FROM play_rankings r
+            JOIN play_snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN play_apps a ON a.package_name = r.package_name
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+            ORDER BY s.category_id, r.rank_no
+            """,
+            (date, country, chart_type),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """
+            SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.genre_id, s.genre_name, s.country AS country,
+                   a.icon_url
+            FROM rankings r
+            JOIN snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN apps a ON a.app_id = r.app_id
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+            ORDER BY s.genre_id, r.rank_no
+            """,
+            (date, country, chart_type),
+        ).fetchall()
     return [
         {
             **dict(row),
-            "genre_name": config.genre_display_name(row["genre_id"], row["genre_name"]),
+            "genre_name": (
+                config.play_category_display_name(row["genre_id"], row["genre_name"])
+                if store == "play"
+                else config.genre_display_name(row["genre_id"], row["genre_name"])
+            ),
         }
         for row in rows
     ]
@@ -126,9 +147,10 @@ def build_country_chart_summary(
     prev_date: str | None,
     country: str,
     chart_type: str,
+    store: str = "app_store",
 ) -> dict:
-    curr_rows = _load_rows(conn, date, country, chart_type)
-    prev_rows = _load_rows(conn, prev_date, country, chart_type) if prev_date else []
+    curr_rows = _load_rows(conn, date, country, chart_type, store=store)
+    prev_rows = _load_rows(conn, prev_date, country, chart_type, store=store) if prev_date else []
     has_previous = bool(prev_rows)
     changes = compare_rankings(prev_rows, curr_rows) if has_previous else []
 
@@ -160,6 +182,7 @@ def build_all_summaries(
     conn: sqlite3.Connection,
     date: str,
     prev_date: str | None,
+    store: str = "app_store",
 ) -> list[dict]:
     summaries = []
     for country in config.iter_countries():
@@ -171,6 +194,7 @@ def build_all_summaries(
                     prev_date,
                     country.code,
                     chart_type,
+                    store,
                 )
             )
     return summaries

@@ -63,6 +63,10 @@ jobs:
       - name: Run daily collection
         run: python3 -m appstore_top30 run
 
+      - name: Run Google Play collection
+        continue-on-error: true
+        run: python3 -m appstore_top30 play
+
       - name: Upload database and reports to R2
         env:
           R2_BUCKET: ${{ secrets.R2_BUCKET }}

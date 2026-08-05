@@ -29,26 +29,44 @@ def _query_rankings(
     country: str,
     chart_type: str,
     genre_id: str | None = None,
+    store: str = "app_store",
 ) -> list[dict]:
-    sql = """
-        SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
-               r.currency, r.rating, r.rating_count,
-               s.genre_id, s.genre_name, a.icon_url
-        FROM rankings r
-        JOIN snapshots s ON s.id = r.snapshot_id
-        LEFT JOIN apps a ON a.app_id = r.app_id
-        WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
-    """
+    if store == "play":
+        sql = """
+            SELECT r.rank_no, r.package_name AS app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.category_id AS genre_id, s.category_name AS genre_name, a.icon_url
+            FROM play_rankings r
+            JOIN play_snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN play_apps a ON a.package_name = r.package_name
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+        """
+    else:
+        sql = """
+            SELECT r.rank_no, r.app_id, r.name, r.developer, r.price_amount,
+                   r.currency, r.rating, r.rating_count,
+                   s.genre_id, s.genre_name, a.icon_url
+            FROM rankings r
+            JOIN snapshots s ON s.id = r.snapshot_id
+            LEFT JOIN apps a ON a.app_id = r.app_id
+            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
+        """
     params: list = [date, country, chart_type]
     if genre_id:
-        sql += " AND s.genre_id = ?"
+        column = "s.category_id" if store == "play" else "s.genre_id"
+        sql += f" AND {column} = ?"
         params.append(genre_id)
-    sql += " ORDER BY s.genre_id, r.rank_no"
+    order_column = "s.category_id" if store == "play" else "s.genre_id"
+    sql += f" ORDER BY {order_column}, r.rank_no"
     rows = conn.execute(sql, params).fetchall()
     return [
         {
             **dict(row),
-            "genre_name": config.genre_display_name(row["genre_id"], row["genre_name"]),
+            "genre_name": (
+                config.play_category_display_name(row["genre_id"], row["genre_name"])
+                if store == "play"
+                else config.genre_display_name(row["genre_id"], row["genre_name"])
+            ),
         }
         for row in rows
     ]
@@ -118,11 +136,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if path == "/api/dates":
                 self._api_dates(conn)
             elif path == "/api/meta":
-                self._api_meta(conn, self._param(query, "date"))
+                self._api_meta(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             elif path == "/api/rankings":
                 self._api_rankings(conn, query)
             elif path == "/api/summary":
-                self._api_summary(conn, self._param(query, "date"))
+                self._api_summary(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             elif path == "/api/trend":
                 self._api_trend(conn, query)
             else:
@@ -133,30 +151,44 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def _api_dates(self, conn: sqlite3.Connection) -> None:
         rows = conn.execute(
             """
-            SELECT s.date,
-                   COUNT(DISTINCT s.country) AS countries,
+            SELECT date, store,
+                   COUNT(DISTINCT country) AS countries,
                    COUNT(*) AS snapshots,
-                   COALESCE(SUM((SELECT COUNT(*) FROM rankings r WHERE r.snapshot_id = s.id)), 0) AS entries
-            FROM snapshots s
-            GROUP BY s.date
-            ORDER BY s.date
+                   COALESCE(SUM(entries), 0) AS entries
+            FROM (
+                SELECT s.date AS date, 'app_store' AS store, s.country AS country, s.id AS id,
+                       (SELECT COUNT(*) FROM rankings r WHERE r.snapshot_id = s.id) AS entries
+                FROM snapshots s
+                UNION ALL
+                SELECT s.date AS date, 'play' AS store, s.country AS country, s.id AS id,
+                       (SELECT COUNT(*) FROM play_rankings r WHERE r.snapshot_id = s.id) AS entries
+                FROM play_snapshots s
+            )
+            GROUP BY date, store
+            ORDER BY date
             """
         ).fetchall()
+        grouped: dict[str, dict] = {}
+        for row in rows:
+            item = grouped.setdefault(
+                row["date"],
+                {"date": row["date"], "stores": {}, "countries": 0, "snapshots": 0, "entries": 0},
+            )
+            item["stores"][row["store"]] = {
+                "countries": row["countries"],
+                "snapshots": row["snapshots"],
+                "entries": row["entries"],
+            }
+            item["countries"] = max(item["countries"], row["countries"])
+            item["snapshots"] += row["snapshots"]
+            item["entries"] += row["entries"]
         self._send_json(
             {
-                "dates": [
-                    {
-                        "date": row["date"],
-                        "countries": row["countries"],
-                        "snapshots": row["snapshots"],
-                        "entries": row["entries"],
-                    }
-                    for row in rows
-                ]
+                "dates": list(grouped.values())
             }
         )
 
-    def _api_meta(self, conn: sqlite3.Connection, date: str | None) -> None:
+    def _api_meta(self, conn: sqlite3.Connection, date: str | None, store: str) -> None:
         regions = {
             region: {
                 "name": spec["name"],
@@ -169,37 +201,67 @@ class DashboardHandler(BaseHTTPRequestHandler):
         }
         genres = []
         if date:
-            rows = conn.execute(
-                """
-                SELECT DISTINCT genre_id, genre_name
-                FROM snapshots
-                WHERE date = ?
-                ORDER BY genre_name
-                """,
-                (date,),
-            ).fetchall()
+            if store == "play":
+                rows = conn.execute(
+                    """
+                    SELECT DISTINCT category_id, category_name
+                    FROM play_snapshots
+                    WHERE date = ?
+                    ORDER BY category_name
+                    """,
+                    (date,),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT DISTINCT genre_id, genre_name
+                    FROM snapshots
+                    WHERE date = ?
+                    ORDER BY genre_name
+                    """,
+                    (date,),
+                ).fetchall()
             seen = {}
             for row in rows:
-                genre_id = row["genre_id"]
+                genre_id = row[0]
                 if genre_id not in seen:
                     seen[genre_id] = {
-                        "genre_id": genre_id,
-                        "genre_name": config.genre_display_name(genre_id, row["genre_name"]),
+                        "id": genre_id,
+                        "name": (
+                            config.play_category_display_name(genre_id, row[1])
+                            if store == "play"
+                            else config.genre_display_name(genre_id, row[1])
+                        ),
                     }
-            genres = sorted(seen.values(), key=lambda item: item["genre_name"])
+            genres = sorted(seen.values(), key=lambda item: item["name"])
         self._send_json(
             {
                 "regions": regions,
                 "charts": config.CHART_TYPES,
                 "genres": genres,
-                "app_genres": [
-                    {"id": genre_id, "name": config.genre_display_name(genre_id)}
-                    for genre_id in config.APP_CATEGORY_IDS
-                ],
-                "game_genres": [
-                    {"id": genre_id, "name": config.genre_display_name(genre_id)}
-                    for genre_id in config.GAME_SUBGENRE_IDS
-                ],
+                "app_genres": (
+                    [
+                        {"id": category_id, "name": config.play_category_display_name(category_id)}
+                        for category_id in config.PLAY_APP_CATEGORY_IDS
+                    ]
+                    if store == "play"
+                    else [
+                        {"id": genre_id, "name": config.genre_display_name(genre_id)}
+                        for genre_id in config.APP_CATEGORY_IDS
+                    ]
+                ),
+                "game_genres": (
+                    [
+                        {"id": category_id, "name": config.play_category_display_name(category_id)}
+                        for category_id in config.PLAY_GAME_SUBCATEGORY_IDS
+                    ]
+                    if store == "play"
+                    else [
+                        {"id": genre_id, "name": config.genre_display_name(genre_id)}
+                        for genre_id in config.GAME_SUBGENRE_IDS
+                    ]
+                ),
+                "store": store,
             }
         )
 
@@ -207,14 +269,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
         date = self._param(query, "date")
         country = self._param(query, "country")
         chart = self._param(query, "chart")
+        store = self._param(query, "store") or "app_store"
         if not date or not country or not chart:
             self._send_json({"error": "date, country, chart are required"}, status=400)
             return
         genre = self._param(query, "genre") or None
-        curr_rows = _query_rankings(conn, date, country, chart, genre)
-        prev_date = db.get_previous_date(conn, date)
+        curr_rows = _query_rankings(conn, date, country, chart, genre, store=store)
+        prev_date = db.get_previous_date(conn, date, store=store)
         prev_rows = (
-            _query_rankings(conn, prev_date, country, chart, genre)
+            _query_rankings(conn, prev_date, country, chart, genre, store=store)
             if prev_date
             else []
         )
@@ -226,16 +289,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "has_previous": bool(prev_rows),
                 "country": country,
                 "chart": chart,
+                "store": store,
                 "rows": changes,
             }
         )
 
-    def _api_summary(self, conn: sqlite3.Connection, date: str | None) -> None:
+    def _api_summary(self, conn: sqlite3.Connection, date: str | None, store: str) -> None:
         if not date:
             self._send_json({"error": "date is required"}, status=400)
             return
-        prev_date = db.get_previous_date(conn, date)
-        summaries = analyze.build_all_summaries(conn, date, prev_date)
+        prev_date = db.get_previous_date(conn, date, store=store)
+        summaries = analyze.build_all_summaries(conn, date, prev_date, store=store)
         compact_summaries = [
             {key: value for key, value in summary.items() if key != "changes"}
             for summary in summaries
@@ -244,7 +308,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             {
                 "date": date,
                 "prev_date": prev_date,
-                "counts": db.snapshot_counts(conn, date),
+                "counts": db.snapshot_counts(conn, date, store=store),
+                "store": store,
                 "summaries": compact_summaries,
             }
         )
@@ -253,24 +318,41 @@ class DashboardHandler(BaseHTTPRequestHandler):
         app_id = self._param(query, "app_id")
         country = self._param(query, "country")
         chart = self._param(query, "chart")
+        store = self._param(query, "store") or "app_store"
         if not app_id or not country or not chart:
             self._send_json({"error": "app_id, country, chart are required"}, status=400)
             return
-        rows = conn.execute(
-            """
-            SELECT s.date,
-                   MIN(r.rank_no) AS best_rank,
-                   GROUP_CONCAT(DISTINCT s.genre_name) AS genres,
-                   MAX(r.name) AS name
-            FROM rankings r
-            JOIN snapshots s ON s.id = r.snapshot_id
-            WHERE r.app_id = ? AND s.country = ? AND s.chart_type = ?
-            GROUP BY s.date
-            ORDER BY s.date
-            """,
-            (app_id, country, chart),
-        ).fetchall()
-        self._send_json({"app_id": app_id, "rows": [dict(row) for row in rows]})
+        if store == "play":
+            rows = conn.execute(
+                """
+                SELECT s.date,
+                       MIN(r.rank_no) AS best_rank,
+                       GROUP_CONCAT(DISTINCT s.category_name) AS genres,
+                       MAX(r.name) AS name
+                FROM play_rankings r
+                JOIN play_snapshots s ON s.id = r.snapshot_id
+                WHERE r.package_name = ? AND s.country = ? AND s.chart_type = ?
+                GROUP BY s.date
+                ORDER BY s.date
+                """,
+                (app_id, country, chart),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT s.date,
+                       MIN(r.rank_no) AS best_rank,
+                       GROUP_CONCAT(DISTINCT s.genre_name) AS genres,
+                       MAX(r.name) AS name
+                FROM rankings r
+                JOIN snapshots s ON s.id = r.snapshot_id
+                WHERE r.app_id = ? AND s.country = ? AND s.chart_type = ?
+                GROUP BY s.date
+                ORDER BY s.date
+                """,
+                (app_id, country, chart),
+            ).fetchall()
+        self._send_json({"app_id": app_id, "store": store, "rows": [dict(row) for row in rows]})
 
 
 def start_dashboard(

@@ -43,6 +43,44 @@ CREATE TABLE IF NOT EXISTS rankings (
 
 CREATE INDEX IF NOT EXISTS idx_rankings_snapshot ON rankings(snapshot_id);
 CREATE INDEX IF NOT EXISTS idx_rankings_app ON rankings(app_id);
+
+CREATE TABLE IF NOT EXISTS play_apps (
+    package_name TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    developer TEXT,
+    icon_url TEXT,
+    first_seen TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS play_snapshots (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    region TEXT NOT NULL,
+    country TEXT NOT NULL,
+    chart_type TEXT NOT NULL,
+    category_id TEXT NOT NULL,
+    category_name TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    UNIQUE(date, region, country, chart_type, category_id)
+);
+
+CREATE TABLE IF NOT EXISTS play_rankings (
+    snapshot_id INTEGER NOT NULL,
+    rank_no INTEGER NOT NULL,
+    package_name TEXT NOT NULL,
+    name TEXT,
+    developer TEXT,
+    price_amount REAL,
+    currency TEXT,
+    rating REAL,
+    rating_count INTEGER,
+    PRIMARY KEY (snapshot_id, rank_no),
+    FOREIGN KEY (snapshot_id) REFERENCES play_snapshots(id) ON DELETE CASCADE,
+    FOREIGN KEY (package_name) REFERENCES play_apps(package_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_play_rankings_snapshot ON play_rankings(snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_play_rankings_app ON play_rankings(package_name);
 """
 
 
@@ -151,34 +189,127 @@ def replace_snapshot(
         )
 
 
-def list_dates(conn: sqlite3.Connection) -> list[str]:
-    rows = conn.execute(
-        "SELECT DISTINCT date FROM snapshots ORDER BY date"
-    ).fetchall()
+def clear_play_snapshots(
+    conn: sqlite3.Connection,
+    date: str,
+    countries: list[str],
+    charts: list[str],
+) -> None:
+    """Remove Google Play snapshots for a date before a fresh fetch."""
+    placeholders_countries = ",".join("?" for _ in countries)
+    placeholders_charts = ",".join("?" for _ in charts)
+    with conn:
+        conn.execute(
+            f"""
+            DELETE FROM play_snapshots
+            WHERE date = ? AND country IN ({placeholders_countries}) AND chart_type IN ({placeholders_charts})
+            """,
+            (date, *countries, *charts),
+        )
+
+
+def replace_play_snapshot(
+    conn: sqlite3.Connection,
+    date: str,
+    region: str,
+    country: str,
+    chart_type: str,
+    category_id: str,
+    category_name: str,
+    rows: list[dict],
+    fetched_at: str,
+) -> None:
+    """Replace one Google Play chart/category snapshot in a single transaction."""
+    with conn:
+        for row in rows:
+            conn.execute(
+                """
+                INSERT INTO play_apps (package_name, name, developer, icon_url, first_seen)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(package_name) DO NOTHING
+                """,
+                (
+                    row["app_id"],
+                    row.get("name"),
+                    row.get("developer"),
+                    row.get("icon_url"),
+                    date,
+                ),
+            )
+
+        conn.execute(
+            """
+            INSERT INTO play_snapshots (date, region, country, chart_type, category_id, category_name, fetched_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(date, region, country, chart_type, category_id)
+            DO UPDATE SET category_name = excluded.category_name, fetched_at = excluded.fetched_at
+            """,
+            (date, region, country, chart_type, category_id, category_name, fetched_at),
+        )
+        snapshot_id = conn.execute(
+            """
+            SELECT id FROM play_snapshots
+            WHERE date = ? AND region = ? AND country = ? AND chart_type = ? AND category_id = ?
+            """,
+            (date, region, country, chart_type, category_id),
+        ).fetchone()["id"]
+
+        conn.execute("DELETE FROM play_rankings WHERE snapshot_id = ?", (snapshot_id,))
+        conn.executemany(
+            """
+            INSERT INTO play_rankings
+                (snapshot_id, rank_no, package_name, name, developer, price_amount, currency, rating, rating_count)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    snapshot_id,
+                    row["rank"],
+                    row["app_id"],
+                    row.get("name"),
+                    row.get("developer"),
+                    row.get("price_amount"),
+                    row.get("currency"),
+                    row.get("rating"),
+                    row.get("rating_count"),
+                )
+                for row in rows
+            ],
+        )
+
+
+def list_dates(conn: sqlite3.Connection, store: str = "app_store") -> list[str]:
+    table = "snapshots" if store == "app_store" else "play_snapshots"
+    rows = conn.execute(f"SELECT DISTINCT date FROM {table} ORDER BY date").fetchall()
     return [row["date"] for row in rows]
 
 
-def get_previous_date(conn: sqlite3.Connection, date: str) -> str | None:
+def get_previous_date(conn: sqlite3.Connection, date: str, store: str = "app_store") -> str | None:
+    table = "snapshots" if store == "app_store" else "play_snapshots"
     row = conn.execute(
-        "SELECT MAX(date) AS d FROM snapshots WHERE date < ?", (date,)
+        f"SELECT MAX(date) AS d FROM {table} WHERE date < ?", (date,)
     ).fetchone()
     return row["d"] if row and row["d"] else None
 
 
-def snapshot_counts(conn: sqlite3.Connection, date: str) -> dict:
+def snapshot_counts(conn: sqlite3.Connection, date: str, store: str = "app_store") -> dict:
+    if store == "app_store":
+        snapshot_table, ranking_table, snapshot_col = "snapshots", "rankings", "snapshot_id"
+    else:
+        snapshot_table, ranking_table, snapshot_col = "play_snapshots", "play_rankings", "snapshot_id"
     snapshot_count = conn.execute(
-        "SELECT COUNT(*) AS n FROM snapshots WHERE date = ?", (date,)
+        f"SELECT COUNT(*) AS n FROM {snapshot_table} WHERE date = ?", (date,)
     ).fetchone()["n"]
     entry_count = conn.execute(
-        """
+        f"""
         SELECT COUNT(*) AS n
-        FROM rankings r JOIN snapshots s ON s.id = r.snapshot_id
+        FROM {ranking_table} r JOIN {snapshot_table} s ON s.id = r.{snapshot_col}
         WHERE s.date = ?
         """,
         (date,),
     ).fetchone()["n"]
     country_count = conn.execute(
-        "SELECT COUNT(DISTINCT country) AS n FROM snapshots WHERE date = ?", (date,)
+        f"SELECT COUNT(DISTINCT country) AS n FROM {snapshot_table} WHERE date = ?", (date,)
     ).fetchone()["n"]
     return {
         "snapshots": snapshot_count,

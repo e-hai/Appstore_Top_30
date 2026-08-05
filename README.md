@@ -2,6 +2,8 @@
 
 每天抓取 App Store 各分类下免费、付费、畅销榜前 30 名应用，保存到 SQLite，并生成 HTML + CSV 每日报告，包含排名变动、新上榜、跌出榜单、价格和评分变化。
 
+项目同时支持 Google Play 官方榜单数据采集：免费、付费、畅销榜前 30 名，覆盖同样的 9 个地区包。Google Play 官方页面只展示当天榜单，历史排名靠每天定时采集累积；官方没有开放公共榜单 API，因此从 `play.google.com` 的 `batchexecute` 官方榜单接口解析排名（页面内嵌的 `AF_initDataCallback` 也作为兜底解析）。
+
 ## 支持的地区与榜单
 
 - 北美区：美国、加拿大
@@ -15,6 +17,8 @@
 - 非洲区：南非、尼日利亚、肯尼亚
 
 每个国家抓取免费榜、付费榜、畅销榜，覆盖 App Store 全部一级分类，并包含游戏子分类。
+
+Google Play 使用同样的地区包和国家代码，榜单覆盖全部应用分类和游戏子分类；两边的分类树独立配置，看板会按所选商店展示。
 
 地区列表、榜单类型、分类范围、并发数都可在 `appstore_top30/config.py` 中修改。
 
@@ -32,6 +36,13 @@ python3 -m appstore_top30 run -d 2026-08-04
 ```bash
 python3 -m appstore_top30 fetch -d 2026-08-04
 python3 -m appstore_top30 report -d 2026-08-04
+```
+
+单独抓取 Google Play：
+
+```bash
+python3 -m appstore_top30 play -d 2026-08-04
+python3 -m appstore_top30 report -d 2026-08-04 --store play
 ```
 
 常用参数：
@@ -54,6 +65,7 @@ python3 -m appstore_top30 dashboard
 
 默认在 `http://127.0.0.1:8000` 打开，支持：
 
+- 在工具栏切换 App Store / Google Play 数据源
 - 按日期、地区、国家、榜单、分类筛选
 - 分类按“应用 / 游戏”大分类逐层展开，游戏下再细分动作、卡牌等子分类
 - 查看榜单明细、排名变化、价格与评分
@@ -79,6 +91,8 @@ python3 -m appstore_top30 dashboard --port 9000 --no-open
   - `summary.csv`：各国家/榜单汇总
 
 报告包含排名变动 Top 15、新上榜 Top 15、跌出榜单 Top 15、评分变化 Top 10，以及各国家、各榜单的汇总卡片。
+
+App Store 报告输出到 `report_YYYY-MM-DD.html`，Google Play 报告输出到 `play_report_YYYY-MM-DD.html`，CSV 文件同样以 `play_` 前缀区分。
 
 ## 每日定时运行
 
@@ -127,6 +141,7 @@ launchctl bootout gui/$(id -u)/com.user.appstore-top30
 `.github/workflows/daily.yml` 会自动：
 
 - 每天 01:00 UTC（北京时间 09:00）跑完整 Top 30 采集
+- 额外运行 `play` 采集 Google Play 官方榜单；Google 对数据中心 IP 有限流，单次失败不会中断 App Store 采集
 - 先把上次的 SQLite 数据库从 R2 下载下来继续追加，再上传回去，历史数据不丢失
 - 把每日 HTML/CSV 报告同步到 R2
 - 另外上传一份最近 30 天的报告到 GitHub Actions Artifacts
@@ -190,9 +205,13 @@ Content-Type: application/json
 ## 数据说明
 
 - 榜单数据来自 Apple 的 WebObjects charts 接口：`itunes.apple.com/WebObjects/MZStoreServices.woa/ws/charts?cc=...&g=...&name=...`
+- Google Play 榜单来自官方页面：`play.google.com/store/apps/collection/topselling_free?hl=en&gl=...` 及分类版页面
+- Google Play 当前榜单数据通过其官方 `/_/PlayStoreUi/data/batchexecute` 接口返回，分类参数与网页分类一致，排名顺序以官方返回为准
 - 应用名称、价格、评分和评分人数来自 iTunes Lookup 接口，按国家批量查询
 - 分类树来自 Apple 的 genres 接口，分类名为各国家本地化名称
 - 数据为公开接口快照，可能与 App Store 客户端展示存在时差或差异，仅用于个人分析
+
+Google Play 没有公开的历史榜单接口，Sensor Tower 等第三方平台提供历史榜，但需要登录和付费订阅，匿名访问不可用；本项目只从官方当前榜单页采集并每日累积历史。
 
 默认配置下全量抓取约 1500 个榜单接口，并启用了全局限速（默认 4 请求/秒）和失败重试，单次完整运行约 10-20 分钟。如被 Apple 临时限流，缺失的榜单会记录到日志并在报告 CSV 中跳过。
 

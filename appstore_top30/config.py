@@ -15,6 +15,10 @@ FEED_WORKERS = 4
 LOOKUP_WORKERS = 2
 LOOKUP_BATCH_SIZE = 100
 REQUESTS_PER_SECOND = 4.0
+PLAY_REQUESTS_PER_SECOND = 2.0
+PLAY_FEED_TIMEOUT = 25
+PLAY_FEED_RETRIES = 3
+PLAY_WORKERS = 2
 
 # Region key -> display name and member countries.
 REGIONS = {
@@ -112,6 +116,84 @@ CHART_TYPES = {
 
 GENRE_ROOT_ID = "36"  # App Store root genre id in the iTunes genres endpoint.
 GAMES_GENRE_ID = "6014"
+
+# Google Play official collection pages, keyed by the same chart keys used for
+# the App Store so the dashboard can reuse the chart selector.
+PLAY_COLLECTIONS = {
+    "free": "topselling_free",
+    "paid": "topselling_paid",
+    "grossing": "topgrossing",
+}
+
+# Google Play store category ids shown on play.google.com category pages.
+PLAY_CATEGORY_NAMES_ZH = {
+    "all": "总榜",
+    "APPLICATION": "应用",
+    "ART_AND_DESIGN": "艺术与设计",
+    "AUTO_AND_VEHICLES": "汽车与车辆",
+    "BEAUTY": "美容",
+    "BOOKS_AND_REFERENCE": "图书与工具书",
+    "BUSINESS": "商务",
+    "COMICS": "漫画",
+    "COMMUNICATION": "通讯",
+    "DATING": "约会",
+    "EDUCATION": "教育",
+    "ENTERTAINMENT": "娱乐",
+    "EVENTS": "活动",
+    "FINANCE": "财务",
+    "FOOD_AND_DRINK": "美食与饮品",
+    "HEALTH_AND_FITNESS": "健康与健身",
+    "HOUSE_AND_HOME": "家居",
+    "LIBRARIES_AND_DEMO": "图书与演示",
+    "LIFESTYLE": "生活方式",
+    "MAPS_AND_NAVIGATION": "地图与导航",
+    "MEDICAL": "医疗",
+    "MUSIC_AND_AUDIO": "音乐与音频",
+    "NEWS_AND_MAGAZINES": "新闻与杂志",
+    "PARENTING": "育儿",
+    "PERSONALIZATION": "个性化",
+    "PHOTOGRAPHY": "摄影",
+    "PRODUCTIVITY": "效率",
+    "SHOPPING": "购物",
+    "SOCIAL": "社交",
+    "SPORTS": "体育",
+    "TOOLS": "工具",
+    "TRAVEL_AND_LOCAL": "旅游与本地",
+    "VIDEO_PLAYERS": "视频播放器",
+    "WATCH_FACE": "表盘",
+    "WEATHER": "天气",
+    "GAME": "游戏",
+    "GAME_ACTION": "动作",
+    "GAME_ADVENTURE": "冒险",
+    "GAME_ARCADE": "街机",
+    "GAME_BOARD": "桌面游戏",
+    "GAME_CARD": "卡牌",
+    "GAME_CASINO": "赌场",
+    "GAME_CASUAL": "休闲",
+    "GAME_EDUCATIONAL": "游戏 · 教育",
+    "GAME_MUSIC": "游戏 · 音乐",
+    "GAME_PUZZLE": "解谜",
+    "GAME_RACING": "竞速",
+    "GAME_ROLE_PLAYING": "角色扮演",
+    "GAME_SIMULATION": "模拟",
+    "GAME_SPORTS": "游戏 · 体育",
+    "GAME_STRATEGY": "策略",
+    "GAME_TRIVIA": "问答",
+    "GAME_WORD": "字谜",
+    "FAMILY": "家庭",
+}
+
+PLAY_APP_CATEGORY_IDS = sorted(
+    category_id
+    for category_id in PLAY_CATEGORY_NAMES_ZH
+    if not category_id.startswith("GAME_")
+    and category_id not in {"all", "APPLICATION", "GAME"}
+)
+PLAY_GAME_SUBCATEGORY_IDS = sorted(
+    category_id
+    for category_id in PLAY_CATEGORY_NAMES_ZH
+    if category_id.startswith("GAME_")
+)
 
 # Unified Chinese names for App Store genre ids.
 GENRE_NAMES_ZH = {
@@ -220,6 +302,11 @@ GAME_SUBGENRE_IDS = sorted(
 def genre_display_name(genre_id: str, original: str | None = None) -> str:
     """Return a unified Chinese genre name when available."""
     return GENRE_NAMES_ZH.get(genre_id, original or genre_id)
+
+
+def play_category_display_name(category_id: str, original: str | None = None) -> str:
+    """Return a unified Chinese Google Play category name when available."""
+    return PLAY_CATEGORY_NAMES_ZH.get(category_id, original or category_id)
 
 
 @dataclass(frozen=True)

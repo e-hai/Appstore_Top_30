@@ -5,6 +5,7 @@ const state = {
   region: "north_america",
   country: "us",
   chart: "free",
+  store: "app_store",
   category: "",
   subcategory: "",
   summary: null,
@@ -17,6 +18,7 @@ const $ = (id) => document.getElementById(id);
 
 const els = {
   date: $("date-select"),
+  store: $("store-select"),
   region: $("region-select"),
   country: $("country-select"),
   chart: $("chart-select"),
@@ -76,6 +78,16 @@ function bindEvents() {
     await loadMeta();
     await refresh();
   });
+  els.store.addEventListener("change", async () => {
+    state.store = els.store.value;
+    localStorage.setItem("appstore-store", state.store);
+    state.category = "";
+    state.subcategory = "";
+    populateCategorySelect();
+    populateSubcategorySelect();
+    await loadMeta();
+    await refresh();
+  });
   els.region.addEventListener("change", async () => {
     state.region = els.region.value;
     populateCountrySelect();
@@ -118,7 +130,9 @@ function bindEvents() {
 }
 
 async function loadMeta() {
-  state.meta = await api(`/api/meta?date=${encodeURIComponent(state.date)}`);
+  state.meta = await api(
+    `/api/meta?date=${encodeURIComponent(state.date)}&store=${encodeURIComponent(state.store)}`
+  );
 }
 
 function populateDateSelect() {
@@ -126,8 +140,12 @@ function populateDateSelect() {
   for (const item of state.dates) {
     const option = document.createElement("option");
     option.value = item.date;
-    option.textContent = `${item.date} · ${item.countries} 国`;
+    const counts = item.stores[state.store] || {};
+    option.textContent = `${item.date} · ${counts.countries || 0} 国`;
     els.date.appendChild(option);
+  }
+  if (!state.dates.some((item) => item.date === state.date)) {
+    state.date = state.dates[state.dates.length - 1].date;
   }
   els.date.value = state.date;
 }
@@ -223,6 +241,20 @@ function populateSubcategorySelect() {
 }
 
 function filterParams() {
+  if (state.store === "play") {
+    if (state.category === "" || state.category === "root") {
+      return "&genre=all";
+    }
+    if (state.category === "apps") {
+      return `&genre=${encodeURIComponent(state.subcategory)}`;
+    }
+    if (state.category === "games") {
+      return state.subcategory
+        ? `&genre=${encodeURIComponent(state.subcategory)}`
+        : "&genre=GAME";
+    }
+    return "";
+  }
   if (state.category === "" || state.category === "root") {
     return "&genre=36";
   }
@@ -245,8 +277,12 @@ async function refresh() {
       `/api/rankings?date=${encodeURIComponent(state.date)}` +
       `&country=${encodeURIComponent(state.country)}` +
       `&chart=${encodeURIComponent(state.chart)}` +
+      `&store=${encodeURIComponent(state.store)}` +
       filterParams();
-    const [summary, rankings] = await Promise.all([api(summaryUrl), api(rankingUrl)]);
+    const [summary, rankings] = await Promise.all([
+      api(`${summaryUrl}&store=${encodeURIComponent(state.store)}`),
+      api(rankingUrl),
+    ]);
     state.summary = summary;
     state.rows = rankings.rows;
     state.hasPrevious = rankings.has_previous;
@@ -378,7 +414,8 @@ async function showTrend(appId, name, country = state.country) {
   const url =
     `/api/trend?app_id=${encodeURIComponent(appId)}` +
     `&country=${encodeURIComponent(country)}` +
-    `&chart=${encodeURIComponent(state.chart)}`;
+    `&chart=${encodeURIComponent(state.chart)}` +
+    `&store=${encodeURIComponent(state.store)}`;
   const data = await api(url);
   els.trendTitle.textContent = `${name} · 排名趋势`;
   els.trendMeta.textContent = `${state.summary.date} · ${country.toUpperCase()} · ${state.meta.charts[state.chart]}`;
@@ -502,6 +539,11 @@ async function init() {
   if (savedTheme) {
     applyTheme(savedTheme);
   }
+  const savedStore = localStorage.getItem("appstore-store");
+  if (savedStore === "play" || savedStore === "app_store") {
+    state.store = savedStore;
+    els.store.value = savedStore;
+  }
   applySidebarState(localStorage.getItem("appstore-sidebar") === "collapsed");
   bindEvents();
   try {
@@ -523,6 +565,12 @@ async function init() {
       return;
     }
     state.date = state.dates[state.dates.length - 1].date;
+    const latestForStore = [...state.dates].reverse().find(
+      (item) => item.stores[state.store] && item.stores[state.store].countries > 0
+    );
+    if (latestForStore) {
+      state.date = latestForStore.date;
+    }
     await loadMeta();
     populateDateSelect();
     populateRegionSelect();

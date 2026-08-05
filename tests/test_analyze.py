@@ -80,7 +80,7 @@ class AnalyzeTest(unittest.TestCase):
                     db.replace_snapshot(
                         conn,
                         "2026-08-04",
-                        "us",
+                        "north_america",
                         "us",
                         "free",
                         "6014",
@@ -88,8 +88,8 @@ class AnalyzeTest(unittest.TestCase):
                         [_row(1, 2), _row(2, 1)],
                         "2026-08-04T00:00:00+08:00",
                     )
-                summary = analyze.build_region_summary(conn, "2026-08-04", "us", "free")
-                self.assertEqual(summary["country_count"], 1)
+                summary = analyze.build_region_summary(conn, "2026-08-04", "north_america", "free")
+                self.assertEqual(summary["country_count"], 2)
                 self.assertEqual(summary["apps"][0]["app_id"], 2)
                 self.assertEqual(summary["apps"][0]["best_rank"], 1)
                 self.assertEqual(summary["apps"][0]["icon_url"], "icon-2.png")

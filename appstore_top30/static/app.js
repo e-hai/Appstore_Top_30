@@ -2,7 +2,7 @@ const state = {
   dates: [],
   meta: null,
   date: "",
-  region: "us",
+  region: "north_america",
   country: "us",
   chart: "free",
   category: "",

@@ -18,9 +18,23 @@ REQUESTS_PER_SECOND = 4.0
 
 # Region key -> display name and member countries.
 REGIONS = {
-    "us": {
-        "name": "美国区",
-        "countries": [("us", "美国")],
+    "north_america": {
+        "name": "北美区",
+        "countries": [
+            ("us", "美国"),
+            ("ca", "加拿大"),
+        ],
+    },
+    "latam": {
+        "name": "拉美区",
+        "countries": [
+            ("mx", "墨西哥"),
+            ("br", "巴西"),
+            ("ar", "阿根廷"),
+            ("cl", "智利"),
+            ("co", "哥伦比亚"),
+            ("pe", "秘鲁"),
+        ],
     },
     "europe": {
         "name": "欧洲区",
@@ -32,18 +46,61 @@ REGIONS = {
             ("es", "西班牙"),
         ],
     },
-    "middle_east": {
-        "name": "中东区",
+    "mena": {
+        "name": "中东与北非",
         "countries": [
             ("ae", "阿联酋"),
             ("sa", "沙特阿拉伯"),
             ("il", "以色列"),
             ("tr", "土耳其"),
+            ("eg", "埃及"),
+            ("ma", "摩洛哥"),
         ],
     },
-    "japan": {
-        "name": "日本区",
-        "countries": [("jp", "日本")],
+    "east_asia": {
+        "name": "东北亚区",
+        "countries": [
+            ("jp", "日本"),
+            ("kr", "韩国"),
+            ("tw", "台湾"),
+            ("hk", "香港"),
+            ("mo", "澳门"),
+        ],
+    },
+    "asean": {
+        "name": "东南亚区",
+        "countries": [
+            ("sg", "新加坡"),
+            ("my", "马来西亚"),
+            ("th", "泰国"),
+            ("id", "印度尼西亚"),
+            ("vn", "越南"),
+            ("ph", "菲律宾"),
+        ],
+    },
+    "oceania": {
+        "name": "大洋洲区",
+        "countries": [
+            ("au", "澳大利亚"),
+            ("nz", "新西兰"),
+        ],
+    },
+    "south_asia": {
+        "name": "南亚区",
+        "countries": [
+            ("in", "印度"),
+            ("pk", "巴基斯坦"),
+            ("bd", "孟加拉国"),
+            ("lk", "斯里兰卡"),
+        ],
+    },
+    "africa": {
+        "name": "非洲区",
+        "countries": [
+            ("za", "南非"),
+            ("ng", "尼日利亚"),
+            ("ke", "肯尼亚"),
+        ],
     },
 }
 

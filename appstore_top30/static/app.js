@@ -169,8 +169,7 @@ function populateChartSelect() {
 function populateCategorySelect() {
   els.category.innerHTML = "";
   const options = [
-    ["", "全部分类"],
-    ["root", "总榜"],
+    ["", "全部分类（总榜）"],
     ["apps", "应用"],
     ["games", "游戏"],
   ];
@@ -214,7 +213,7 @@ function populateSubcategorySelect() {
 }
 
 function filterParams() {
-  if (state.category === "root") {
+  if (state.category === "" || state.category === "root") {
     return "&genre=36";
   }
   if (state.category === "apps") {

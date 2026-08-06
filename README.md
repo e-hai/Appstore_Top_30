@@ -2,7 +2,7 @@
 
 每天抓取 App Store 各分类下免费、付费、畅销榜前 30 名应用，保存到 SQLite，并生成 HTML + CSV 每日报告，包含排名变动、新上榜、跌出榜单、价格和评分变化。
 
-项目同时支持 Google Play 官方榜单数据采集：免费、付费、畅销榜前 30 名，覆盖同样的 9 个地区包。Google Play 官方页面只展示当天榜单，历史排名靠每天定时采集累积；官方没有开放公共榜单 API，因此从 `play.google.com` 的 `batchexecute` 官方榜单接口解析排名（页面内嵌的 `AF_initDataCallback` 也作为兜底解析）。
+项目同时支持 Google Play 官方榜单数据采集：免费、付费、畅销榜前 30 名，覆盖同样的 9 个地区包。Google Play 官方页面只展示当天榜单，历史排名靠定时采集累积（GitHub Actions 默认每 3 小时一次）；官方没有开放公共榜单 API，因此从 `play.google.com` 的 `batchexecute` 官方榜单接口解析排名（页面内嵌的 `AF_initDataCallback` 也作为兜底解析）。
 
 ## 支持的地区与榜单
 
@@ -126,9 +126,9 @@ launchctl bootout gui/$(id -u)/com.user.appstore-top30
 
 运行日志写入 `logs/daily.log`，launchd 自身日志在 `logs/launchd.out.log` 和 `logs/launchd.err.log`。
 
-## GitHub Actions 云端每日采集
+## GitHub Actions 云端定时采集
 
-如果电脑不常开，可以把每日采集放到 GitHub Actions 上，由云端定时执行，每天 09:00（北京时间）自动运行：
+如果电脑不常开，可以把采集放到 GitHub Actions 上，由云端定时执行。工作流默认每 3 小时运行一次（UTC 00:07、03:07、06:07、09:07、12:07、15:07、18:07、21:07，对应北京 08:07、11:07、14:07、17:07、20:07、23:07、02:07、05:07）：
 
 1. 把项目推到 GitHub 仓库
 2. 在 Cloudflare R2 建一个 Bucket（免费额度 10GB），创建 API Token
@@ -140,7 +140,7 @@ launchctl bootout gui/$(id -u)/com.user.appstore-top30
 
 `.github/workflows/daily.yml` 会自动：
 
-- 每天 01:00 UTC（北京时间 09:00）跑完整 Top 30 采集
+- 每 3 小时跑一次完整 Top 30 采集
 - 额外运行 `play` 采集 Google Play 官方榜单；Google 对数据中心 IP 有限流，单次失败不会中断 App Store 采集
 - 先把上次的 SQLite 数据库从 R2 下载下来继续追加，再上传回去，历史数据不丢失
 - 把每日 HTML/CSV 报告同步到 R2

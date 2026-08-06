@@ -2,7 +2,7 @@ name: daily-appstore-top30
 
 on:
   schedule:
-    - cron: "0 1 * * *"
+    - cron: "7 */3 * * *"
   workflow_dispatch:
     inputs:
       date:

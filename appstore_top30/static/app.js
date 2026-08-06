@@ -300,6 +300,11 @@ async function refresh() {
       `&chart=${encodeURIComponent(state.chart)}` +
       `&store=${encodeURIComponent(state.store)}` +
       filterParams();
+    const distributionUrl =
+      `/api/distribution?date=${encodeURIComponent(state.date)}` +
+      `&country=${encodeURIComponent(state.country)}` +
+      `&chart=${encodeURIComponent(state.chart)}` +
+      `&store=${encodeURIComponent(state.store)}`;
     const [summary, rankings] = await Promise.all([
       api(`${summaryUrl}&store=${encodeURIComponent(state.store)}`),
       api(rankingUrl),
@@ -307,8 +312,16 @@ async function refresh() {
     state.summary = summary;
     state.rows = rankings.rows;
     state.hasPrevious = rankings.has_previous;
+    const currentAppIds = rankings.rows
+      .filter((row) => row.curr_rank != null)
+      .map((row) => row.app_id);
+    const urlWithApps =
+      currentAppIds.length > 0
+        ? `${distributionUrl}&app_ids=${encodeURIComponent(currentAppIds.join(","))}`
+        : distributionUrl;
+    const distribution = await api(urlWithApps);
     renderSnapshot();
-    renderDonut();
+    renderDonut(distribution.items || []);
     renderTable();
     els.headerMeta.textContent =
       `${state.summary.date} · ${storeName()} · ${state.meta.charts[state.chart] || state.chart}`;
@@ -353,23 +366,18 @@ function renderSnapshot() {
     .join("");
 }
 
-function renderDonut() {
-  const counts = new Map();
-  for (const row of state.rows) {
-    const key = row.genre_name || "未分类";
-    counts.set(key, (counts.get(key) || 0) + 1);
-  }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+function renderDonut(items) {
+  const sorted = [...items].sort((a, b) => b.apps - a.apps);
   if (!sorted.length) {
     els.distribution.innerHTML = "<div class=\"empty-state\">暂无数据</div>";
     return;
   }
   const top = sorted.slice(0, 8);
   const rest = sorted.slice(8);
-  const items = rest.length
-    ? [...top, ["其他", rest.reduce((sum, [, n]) => sum + n, 0)]]
+  const shown = rest.length
+    ? [...top, { genre_name: "其他", apps: rest.reduce((sum, item) => sum + item.apps, 0) }]
     : top;
-  const total = items.reduce((sum, [, n]) => sum + n, 0);
+  const total = shown.reduce((sum, item) => sum + item.apps, 0);
   const ns = "http://www.w3.org/2000/svg";
   const size = 146;
   const r = 58;
@@ -391,8 +399,8 @@ function renderDonut() {
   bg.setAttribute("stroke-width", "14");
   group.appendChild(bg);
   let acc = 0;
-  items.forEach(([, n], index) => {
-    const frac = n / total;
+  shown.forEach((item, index) => {
+    const frac = item.apps / total;
     const len = Math.max(0.5, frac * circ);
     const circle = document.createElementNS(ns, "circle");
     circle.setAttribute("cx", cx);
@@ -414,19 +422,20 @@ function renderDonut() {
   center.setAttribute("fill", "var(--text)");
   center.setAttribute("font-size", "17");
   center.setAttribute("font-weight", "700");
-  center.textContent = String(total);
+  const currentAppCount = state.rows.filter((row) => row.curr_rank != null).length;
+  center.textContent = String(currentAppCount || total);
   svg.appendChild(center);
 
   const legend = document.createElement("div");
   legend.setAttribute("class", "donut-legend");
-  legend.innerHTML = items
-    .map(([name, n], index) => {
-      const pct = total ? Math.round((n / total) * 100) : 0;
+  legend.innerHTML = shown
+    .map((item, index) => {
+      const pct = total ? Math.round((item.apps / total) * 100) : 0;
       return (
         `<div class="legend-item">` +
         `<span class="legend-dot" style="background:${chartColor(index)}"></span>` +
-        `<span class="legend-name" title="${esc(name)}">${esc(name)}</span>` +
-        `<span class="legend-value">${pct}%</span>` +
+        `<span class="legend-name" title="${esc(item.genre_name)}">${esc(item.genre_name)}</span>` +
+        `<span class="legend-value">${item.apps} · ${pct}%</span>` +
         `</div>`
       );
     })

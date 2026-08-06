@@ -6,7 +6,7 @@
   <title>App Store Top 30 数据看板</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body data-theme="light">
+<body data-theme="dark">
   <div id="loading-bar" class="loading-bar"></div>
 
   <div class="app-layout">
@@ -24,12 +24,19 @@
         </button>
       </div>
 
+      <nav class="sidebar-nav" aria-label="看板导航">
+        <button class="nav-item active" type="button">
+          <span class="nav-dot"></span>
+          <span>榜单分析</span>
+        </button>
+      </nav>
+
       <div class="sidebar-footer">
         <label>
           <span class="footer-label">主题</span>
           <select id="theme-select">
-            <option value="light">默认浅色</option>
-            <option value="dark">深色</option>
+            <option value="dark" selected>深色</option>
+            <option value="light">浅色</option>
           </select>
         </label>
       </div>
@@ -37,6 +44,10 @@
 
     <div class="content">
       <header class="content-header">
+        <div class="content-title-row">
+          <strong class="content-title">榜单分析</strong>
+          <span id="header-meta" class="header-meta"></span>
+        </div>
         <div class="toolbar">
           <label>日期
             <select id="date-select"></select>
@@ -65,18 +76,7 @@
         </div>
       </header>
 
-      <main>
-        <aside class="side">
-          <section class="panel">
-            <div class="panel-title">数据总览</div>
-            <div id="summary-grid" class="summary-grid"></div>
-          </section>
-          <section class="panel">
-            <div class="panel-title">分类分布</div>
-            <div id="distribution" class="distribution"></div>
-          </section>
-        </aside>
-
+      <main class="dashboard-grid">
         <section class="panel table-panel">
           <div class="panel-head">
             <div>
@@ -96,6 +96,27 @@
             <div id="empty-state" class="empty-state hidden">暂无数据，请调整筛选条件或先运行抓取。</div>
           </div>
         </section>
+
+        <section class="panel trends-panel">
+          <div class="panel-head">
+            <div>
+              <div id="trends-title" class="panel-title">榜单趋势</div>
+              <div id="trends-meta" class="panel-sub"></div>
+            </div>
+          </div>
+          <div id="trends-chart" class="trends-chart"></div>
+        </section>
+
+        <aside class="side">
+          <section class="panel snapshot-panel">
+            <div class="panel-title">快照概览</div>
+            <div id="snapshot-grid" class="snapshot-grid"></div>
+          </section>
+          <section class="panel share-panel">
+            <div class="panel-title">分类占比</div>
+            <div id="share-chart" class="share-chart"></div>
+          </section>
+        </aside>
       </main>
     </div>
   </div>

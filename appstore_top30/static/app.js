@@ -37,7 +37,6 @@ const els = {
   trendMeta: $("trend-meta"),
   trendChart: $("trend-chart"),
   trendClose: $("trend-close"),
-  sidebarToggle: $("sidebar-toggle"),
   themeButtons: Array.from(document.querySelectorAll(".theme-option")),
   loading: $("loading-bar"),
   trendsChart: $("trends-chart"),
@@ -87,13 +86,6 @@ function applyTheme(theme) {
 
 function setLoading(active) {
   els.loading.classList.toggle("active", active);
-}
-
-function applySidebarState(collapsed) {
-  document.body.classList.toggle("sidebar-collapsed", collapsed);
-  els.sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
-  els.sidebarToggle.setAttribute("aria-label", collapsed ? "展开侧边栏" : "收起侧边栏");
-  els.sidebarToggle.title = collapsed ? "展开侧边栏" : "收起侧边栏";
 }
 
 async function api(path) {
@@ -151,11 +143,6 @@ function bindEvents() {
   });
   els.trendClose.addEventListener("click", closeTrend);
   els.drawerMask.addEventListener("click", closeTrend);
-  els.sidebarToggle.addEventListener("click", () => {
-    const collapsed = document.body.classList.toggle("sidebar-collapsed");
-    applySidebarState(collapsed);
-    localStorage.setItem("appstore-sidebar", collapsed ? "collapsed" : "expanded");
-  });
   for (const button of els.themeButtons) {
     button.addEventListener("click", () => {
       applyTheme(button.dataset.theme);
@@ -781,15 +768,11 @@ async function init() {
     state.store = savedStore;
     els.store.value = savedStore;
   }
-  applySidebarState(localStorage.getItem("appstore-sidebar") === "collapsed");
   bindEvents();
   try {
     const params = new URLSearchParams(location.search);
     if (params.has("theme")) {
       applyTheme(params.get("theme"));
-    }
-    if (params.has("sidebar")) {
-      applySidebarState(params.get("sidebar") === "collapsed");
     }
     if (params.has("category")) {
       state.category = params.get("category");

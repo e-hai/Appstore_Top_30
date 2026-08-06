@@ -72,67 +72,6 @@ def _query_rankings(
     ]
 
 
-def query_category_distribution(
-    conn: sqlite3.Connection,
-    date: str,
-    country: str,
-    chart_type: str,
-    store: str = "app_store",
-    app_ids: list[str] | None = None,
-) -> list[dict]:
-    """Count unique apps per category for a country/chart/day snapshot.
-
-    When ``app_ids`` is provided, only those apps are counted, so the result
-    shows which categories the current chart's apps also appear in.
-    """
-    app_filter = ""
-    params: list = [date, country, chart_type]
-    if app_ids:
-        placeholders = ",".join("?" for _ in app_ids)
-        app_filter = f" AND r.{'package_name' if store == 'play' else 'app_id'} IN ({placeholders})"
-        params.extend(app_ids)
-    if store == "play":
-        rows = conn.execute(
-            f"""
-            SELECT s.category_id AS genre_id,
-                   s.category_name AS genre_name,
-                   COUNT(DISTINCT r.package_name) AS apps
-            FROM play_rankings r
-            JOIN play_snapshots s ON s.id = r.snapshot_id
-            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
-            {app_filter}
-            GROUP BY s.category_id, s.category_name
-            ORDER BY apps DESC, s.category_name
-            """,
-            params,
-        ).fetchall()
-    else:
-        rows = conn.execute(
-            f"""
-            SELECT s.genre_id, s.genre_name, COUNT(DISTINCT r.app_id) AS apps
-            FROM rankings r
-            JOIN snapshots s ON s.id = r.snapshot_id
-            WHERE s.date = ? AND s.country = ? AND s.chart_type = ?
-            {app_filter}
-            GROUP BY s.genre_id, s.genre_name
-            ORDER BY apps DESC, s.genre_name
-            """,
-            params,
-        ).fetchall()
-    return [
-        {
-            "genre_id": row["genre_id"],
-            "genre_name": (
-                config.play_category_display_name(row["genre_id"], row["genre_name"])
-                if store == "play"
-                else config.genre_display_name(row["genre_id"], row["genre_name"])
-            ),
-            "apps": row["apps"],
-        }
-        for row in rows
-    ]
-
-
 class DashboardHandler(BaseHTTPRequestHandler):
     db_path = config.DB_PATH
 
@@ -200,8 +139,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._api_meta(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             elif path == "/api/rankings":
                 self._api_rankings(conn, query)
-            elif path == "/api/distribution":
-                self._api_distribution(conn, query)
             elif path == "/api/summary":
                 self._api_summary(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             elif path == "/api/trend":
@@ -354,33 +291,6 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "chart": chart,
                 "store": store,
                 "rows": changes,
-            }
-        )
-
-    def _api_distribution(self, conn: sqlite3.Connection, query: str) -> None:
-        date = self._param(query, "date")
-        country = self._param(query, "country")
-        chart = self._param(query, "chart")
-        store = self._param(query, "store") or "app_store"
-        raw_app_ids = self._param(query, "app_ids")
-        app_ids = [item for item in raw_app_ids.split(",") if item] if raw_app_ids else None
-        if not date or not country or not chart:
-            self._send_json({"error": "date, country, chart are required"}, status=400)
-            return
-        self._send_json(
-            {
-                "date": date,
-                "country": country,
-                "chart": chart,
-                "store": store,
-                "items": query_category_distribution(
-                    conn,
-                    date,
-                    country,
-                    chart,
-                    store=store,
-                    app_ids=app_ids,
-                ),
             }
         )
 

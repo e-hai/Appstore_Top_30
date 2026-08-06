@@ -26,7 +26,6 @@ const els = {
   subcategory: $("subcategory-select"),
   search: $("search-input"),
   summary: $("snapshot-grid"),
-  distribution: $("share-chart"),
   tableBody: $("table-body"),
   tableHead: $("table-head"),
   tableCount: $("table-count"),
@@ -301,11 +300,6 @@ async function refresh() {
       `&chart=${encodeURIComponent(state.chart)}` +
       `&store=${encodeURIComponent(state.store)}` +
       filterParams();
-    const distributionUrl =
-      `/api/distribution?date=${encodeURIComponent(state.date)}` +
-      `&country=${encodeURIComponent(state.country)}` +
-      `&chart=${encodeURIComponent(state.chart)}` +
-      `&store=${encodeURIComponent(state.store)}`;
     const [summary, rankings] = await Promise.all([
       api(`${summaryUrl}&store=${encodeURIComponent(state.store)}`),
       api(rankingUrl),
@@ -313,16 +307,7 @@ async function refresh() {
     state.summary = summary;
     state.rows = rankings.rows;
     state.hasPrevious = rankings.has_previous;
-    const currentAppIds = rankings.rows
-      .filter((row) => row.curr_rank != null)
-      .map((row) => row.app_id);
-    const urlWithApps =
-      currentAppIds.length > 0
-        ? `${distributionUrl}&app_ids=${encodeURIComponent(currentAppIds.join(","))}`
-        : distributionUrl;
-    const distribution = await api(urlWithApps);
     renderSnapshot();
-    renderDonut(distribution.items || []);
     renderTable();
     els.headerMeta.textContent =
       `${state.summary.date} · ${storeName()} · ${state.meta.charts[state.chart] || state.chart}`;
@@ -365,85 +350,6 @@ function renderSnapshot() {
         `</div>`
     )
     .join("");
-}
-
-function renderDonut(items) {
-  const sorted = [...items].sort((a, b) => b.apps - a.apps);
-  if (!sorted.length) {
-    els.distribution.innerHTML = "<div class=\"empty-state\">暂无数据</div>";
-    return;
-  }
-  const top = sorted.slice(0, 8);
-  const rest = sorted.slice(8);
-  const shown = rest.length
-    ? [...top, { genre_name: "其他", apps: rest.reduce((sum, item) => sum + item.apps, 0) }]
-    : top;
-  const total = shown.reduce((sum, item) => sum + item.apps, 0);
-  const ns = "http://www.w3.org/2000/svg";
-  const size = 146;
-  const r = 58;
-  const cx = size / 2;
-  const cy = size / 2;
-  const circ = 2 * Math.PI * r;
-  const svg = document.createElementNS(ns, "svg");
-  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-  svg.setAttribute("class", "donut-svg");
-  svg.setAttribute("role", "img");
-  const group = document.createElementNS(ns, "g");
-  group.setAttribute("transform", `rotate(-90 ${cx} ${cy})`);
-  const bg = document.createElementNS(ns, "circle");
-  bg.setAttribute("cx", cx);
-  bg.setAttribute("cy", cy);
-  bg.setAttribute("r", r);
-  bg.setAttribute("fill", "none");
-  bg.setAttribute("stroke", "var(--surface-3)");
-  bg.setAttribute("stroke-width", "14");
-  group.appendChild(bg);
-  let acc = 0;
-  shown.forEach((item, index) => {
-    const frac = item.apps / total;
-    const len = Math.max(0.5, frac * circ);
-    const circle = document.createElementNS(ns, "circle");
-    circle.setAttribute("cx", cx);
-    circle.setAttribute("cy", cy);
-    circle.setAttribute("r", r);
-    circle.setAttribute("fill", "none");
-    circle.setAttribute("stroke", chartColor(index));
-    circle.setAttribute("stroke-width", "14");
-    circle.setAttribute("stroke-dasharray", `${len} ${circ - len}`);
-    circle.setAttribute("stroke-dashoffset", `${-acc * circ}`);
-    group.appendChild(circle);
-    acc += frac;
-  });
-  svg.appendChild(group);
-  const center = document.createElementNS(ns, "text");
-  center.setAttribute("x", cx);
-  center.setAttribute("y", cy + 5);
-  center.setAttribute("text-anchor", "middle");
-  center.setAttribute("fill", "var(--text)");
-  center.setAttribute("font-size", "17");
-  center.setAttribute("font-weight", "700");
-  const currentAppCount = state.rows.filter((row) => row.curr_rank != null).length;
-  center.textContent = String(currentAppCount || total);
-  svg.appendChild(center);
-
-  const legend = document.createElement("div");
-  legend.setAttribute("class", "donut-legend");
-  legend.innerHTML = shown
-    .map((item, index) => {
-      const pct = total ? Math.round((item.apps / total) * 100) : 0;
-      return (
-        `<div class="legend-item">` +
-        `<span class="legend-dot" style="background:${chartColor(index)}"></span>` +
-        `<span class="legend-name" title="${esc(item.genre_name)}">${esc(item.genre_name)}</span>` +
-        `<span class="legend-value">${item.apps} · ${pct}%</span>` +
-        `</div>`
-      );
-    })
-    .join("");
-  els.distribution.innerHTML = "";
-  els.distribution.appendChild(svg);
-  els.distribution.appendChild(legend);
 }
 
 function badgeFor(row) {

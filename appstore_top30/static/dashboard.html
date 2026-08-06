@@ -16,7 +16,7 @@
           <span class="brand-mark">30</span>
           <div class="sidebar-title">
             <strong>App Store Top 30</strong>
-            <small>多地区 · 多榜单 · 每日数据看板</small>
+            <small>每日榜单数据</small>
           </div>
         </div>
         <button id="sidebar-toggle" class="icon-button sidebar-toggle" type="button" aria-label="收起侧边栏" title="收起侧边栏" aria-expanded="true">
@@ -27,18 +27,22 @@
       <nav class="sidebar-nav" aria-label="看板导航">
         <button class="nav-item active" type="button">
           <span class="nav-dot"></span>
-          <span>榜单分析</span>
+          <span class="nav-text">榜单分析</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <label>
-          <span class="footer-label">主题</span>
-          <select id="theme-select">
-            <option value="dark" selected>深色</option>
-            <option value="light">浅色</option>
-          </select>
-        </label>
+        <span class="footer-label">主题</span>
+        <div class="theme-switch" role="group" aria-label="主题">
+          <button type="button" class="theme-option" data-theme="dark" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span>深色</span>
+          </button>
+          <button type="button" class="theme-option" data-theme="light" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+            <span>浅色</span>
+          </button>
+        </div>
       </div>
     </aside>
 

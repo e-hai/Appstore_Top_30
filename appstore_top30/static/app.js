@@ -38,7 +38,7 @@ const els = {
   trendChart: $("trend-chart"),
   trendClose: $("trend-close"),
   sidebarToggle: $("sidebar-toggle"),
-  theme: $("theme-select"),
+  themeButtons: Array.from(document.querySelectorAll(".theme-option")),
   loading: $("loading-bar"),
   trendsChart: $("trends-chart"),
   trendsMeta: $("trends-meta"),
@@ -71,6 +71,18 @@ function chartColor(index) {
 
 function storeName() {
   return state.store === "play" ? "Google Play" : "App Store";
+}
+
+function applyTheme(theme) {
+  if (!["light", "dark"].includes(theme)) {
+    return;
+  }
+  document.body.dataset.theme = theme;
+  for (const button of els.themeButtons) {
+    const active = button.dataset.theme === theme;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
 }
 
 function setLoading(active) {
@@ -144,10 +156,12 @@ function bindEvents() {
     applySidebarState(collapsed);
     localStorage.setItem("appstore-sidebar", collapsed ? "collapsed" : "expanded");
   });
-  els.theme.addEventListener("change", () => {
-    document.body.dataset.theme = els.theme.value;
-    localStorage.setItem("appstore-theme", els.theme.value);
-  });
+  for (const button of els.themeButtons) {
+    button.addEventListener("click", () => {
+      applyTheme(button.dataset.theme);
+      localStorage.setItem("appstore-theme", button.dataset.theme);
+    });
+  }
 }
 
 async function loadMeta() {
@@ -761,12 +775,6 @@ function renderMultiTrendChart(series) {
 }
 
 async function init() {
-  const applyTheme = (theme) => {
-    if (["light", "dark"].includes(theme)) {
-      document.body.dataset.theme = theme;
-      els.theme.value = theme;
-    }
-  };
   applyTheme(localStorage.getItem("appstore-theme") || "dark");
   const savedStore = localStorage.getItem("appstore-store");
   if (savedStore === "play" || savedStore === "app_store") {
@@ -779,6 +787,9 @@ async function init() {
     const params = new URLSearchParams(location.search);
     if (params.has("theme")) {
       applyTheme(params.get("theme"));
+    }
+    if (params.has("sidebar")) {
+      applySidebarState(params.get("sidebar") === "collapsed");
     }
     if (params.has("category")) {
       state.category = params.get("category");

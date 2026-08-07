@@ -12,12 +12,25 @@
 - 支持 GitHub Actions 云端定时采集，可用 Google Drive 或 Cloudflare R2 保存历史数据
 - 仅使用 Python 标准库，无需安装第三方依赖
 
-## 安装
+## 一键快捷启动 (推荐)
 
-环境要求：Python 3.9+。
+仅需执行一行命令即可自动完成检测、依赖处理、数据初始化并启动 Web 服务：
+
+```bash
+# 首次安装与快速启动
+./setup.sh
+
+# 以后日常一键启动看板
+./start.sh
+```
+
+## 手动安装与运行
+
+环境要求：Python 3.8+（无需任何第三方 pip 依赖，纯标准库）。
 
 ```bash
 git clone https://github.com/e-hai/Appstore_Top_30.git
 cd Appstore_Top_30
 python3 -m appstore_top30 init
+python3 -m appstore_top30 dashboard --host 0.0.0.0 --port 8080
 ```

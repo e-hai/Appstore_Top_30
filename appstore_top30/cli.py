@@ -34,6 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     fetch.add_argument("--regions", type=_csv_list, default=list(config.REGIONS.keys()), help="Comma-separated region keys")
     fetch.add_argument("--charts", type=_csv_list, default=list(config.CHART_TYPES.keys()), help="Comma-separated chart keys")
     fetch.add_argument("--top-n", type=int, default=config.TOP_N, help="Apps per chart (default 30)")
+    fetch.add_argument("-f", "--force", action="store_true", help="Force re-fetch even if date is already complete")
 
     report_parser = sub.add_parser("report", help="Generate HTML/CSV report for a date")
     report_parser.add_argument("-d", "--date", type=_parse_date, default=date_type.today().isoformat(), help="Report date (YYYY-MM-DD)")
@@ -45,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--regions", type=_csv_list, default=list(config.REGIONS.keys()), help="Comma-separated region keys")
     run.add_argument("--charts", type=_csv_list, default=list(config.CHART_TYPES.keys()), help="Comma-separated chart keys")
     run.add_argument("--top-n", type=int, default=config.TOP_N, help="Apps per chart (default 30)")
+    run.add_argument("-f", "--force", action="store_true", help="Force re-fetch even if date is already complete")
     run.add_argument("--open", action="store_true", help="Open the HTML report in a browser")
 
     play = sub.add_parser("play", help="Fetch Google Play daily snapshots")
@@ -52,9 +54,10 @@ def build_parser() -> argparse.ArgumentParser:
     play.add_argument("--regions", type=_csv_list, default=list(config.REGIONS.keys()), help="Comma-separated region keys")
     play.add_argument("--charts", type=_csv_list, default=list(config.CHART_TYPES.keys()), help="Comma-separated chart keys")
     play.add_argument("--top-n", type=int, default=config.TOP_N, help="Apps per chart (default 30)")
+    play.add_argument("-f", "--force", action="store_true", help="Force re-fetch even if date is already complete")
 
     dash = sub.add_parser("dashboard", help="Start the local interactive dashboard")
-    dash.add_argument("--host", default="127.0.0.1", help="Bind host (default 127.0.0.1)")
+    dash.add_argument("--host", default="0.0.0.0", help="Bind host (default 0.0.0.0)")
     dash.add_argument("--port", type=int, default=8000, help="Bind port (default 8000)")
     dash.add_argument("--no-open", action="store_true", help="Do not open the browser automatically")
 
@@ -91,7 +94,11 @@ def main(argv: list[str] | None = None) -> int:
             regions=args.regions,
             charts=args.charts,
             top_n=args.top_n,
+            force=args.force,
         )
+        if stats.get("skipped"):
+            LOGGER.info("fetch skipped for date %s: %s", args.date, stats.get("reason"))
+            return 0
         LOGGER.info(
             "fetch complete: %s countries, %s/%s feeds ok, %s entries, %s snapshots saved",
             stats["countries"],
@@ -119,7 +126,11 @@ def main(argv: list[str] | None = None) -> int:
             regions=args.regions,
             charts=args.charts,
             top_n=args.top_n,
+            force=args.force,
         )
+        if stats.get("skipped"):
+            LOGGER.info("google play fetch skipped for date %s: %s", args.date, stats.get("reason"))
+            return 0
         LOGGER.info(
             "google play fetch complete: %s countries, %s/%s feeds ok, %s entries, %s snapshots saved",
             stats["countries"],
@@ -140,7 +151,10 @@ def main(argv: list[str] | None = None) -> int:
             regions=args.regions,
             charts=args.charts,
             top_n=args.top_n,
+            force=args.force,
         )
+        if stats.get("skipped"):
+            LOGGER.info("run skipped fetch for date %s: %s", args.date, stats.get("reason"))
         html_path = report.generate_report(args.date, args.db, args.reports_dir)
         LOGGER.info(
             "run complete: %s entries, %s snapshots, report at %s",

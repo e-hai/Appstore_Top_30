@@ -16,6 +16,8 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 class DashboardServer(ThreadingHTTPServer):
     """HTTP server that avoids reverse-DNS lookups during startup."""
 
+    allow_reuse_address = True
+
     def server_bind(self) -> None:
         socketserver.TCPServer.server_bind(self)
         host, port = self.server_address[:2]
@@ -143,6 +145,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._api_summary(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             elif path == "/api/trend":
                 self._api_trend(conn, query)
+            elif path == "/api/publisher":
+                self._api_publisher(conn, query)
             else:
                 self._send_json({"error": "unknown api"}, status=404)
         finally:
@@ -282,6 +286,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             else []
         )
         changes = analyze.compare_rankings(prev_rows, curr_rows)
+        quant_res = analyze.enrich_quant_factors(
+            conn, changes, country, chart, store=store, genre_id=genre
+        )
+        attribution = analyze.generate_market_attribution(
+            conn, date, country, chart, store=store, genre_id=genre
+        )
         self._send_json(
             {
                 "date": date,
@@ -290,7 +300,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "country": country,
                 "chart": chart,
                 "store": store,
-                "rows": changes,
+                "rows": quant_res["items"],
+                "quant_summary": quant_res["summary"],
+                "market_attribution": attribution,
             }
         )
 
@@ -315,56 +327,172 @@ class DashboardHandler(BaseHTTPRequestHandler):
         )
 
     def _api_trend(self, conn: sqlite3.Connection, query: str) -> None:
-        app_id = self._param(query, "app_id")
-        country = self._param(query, "country")
-        chart = self._param(query, "chart")
+        raw_app_ids = self._param(query, "app_ids") or self._param(query, "app_id")
+        country = (self._param(query, "country") or "us").lower()
+        chart = (self._param(query, "chart") or "free").lower()
+        store = (self._param(query, "store") or "app_store").lower()
+        genre = self._param(query, "genre")
+        if not raw_app_ids:
+            self._send_json({"error": "app_id or app_ids is required"}, status=400)
+            return
+        app_ids = [i.strip() for i in raw_app_ids.split(",") if i.strip()]
+
+        # 设置默认分类 ID（iOS 默认为 36 总榜，Play 默认为 all 总榜）
+        target_genre = genre if genre else ("all" if store == "play" else "36")
+
+        trends = {}
+        for app_id in app_ids:
+            if store == "play":
+                rows = conn.execute(
+                    """
+                    SELECT s.date,
+                           MIN(r.rank_no) AS best_rank,
+                           GROUP_CONCAT(DISTINCT s.category_name) AS genres,
+                           MAX(r.name) AS name
+                    FROM play_rankings r
+                    JOIN play_snapshots s ON s.id = r.snapshot_id
+                    WHERE LOWER(r.package_name) = LOWER(?)
+                      AND LOWER(s.country) = ?
+                      AND LOWER(s.chart_type) = ?
+                      AND s.category_id = ?
+                    GROUP BY s.date
+                    ORDER BY s.date
+                    """,
+                    (app_id, country, chart, target_genre),
+                ).fetchall()
+                if not rows:
+                    rows = conn.execute(
+                        """
+                        SELECT s.date,
+                               MIN(r.rank_no) AS best_rank,
+                               GROUP_CONCAT(DISTINCT s.category_name) AS genres,
+                               MAX(r.name) AS name
+                        FROM play_rankings r
+                        JOIN play_snapshots s ON s.id = r.snapshot_id
+                        WHERE LOWER(r.package_name) = LOWER(?)
+                          AND LOWER(s.country) = ?
+                          AND LOWER(s.chart_type) = ?
+                        GROUP BY s.date
+                        ORDER BY s.date
+                        """,
+                        (app_id, country, chart),
+                    ).fetchall()
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT s.date,
+                           MIN(r.rank_no) AS best_rank,
+                           GROUP_CONCAT(DISTINCT s.genre_name) AS genres,
+                           MAX(r.name) AS name
+                    FROM rankings r
+                    JOIN snapshots s ON s.id = r.snapshot_id
+                    WHERE (CAST(r.app_id AS TEXT) = ? OR r.app_id = ?)
+                      AND LOWER(s.country) = ?
+                      AND LOWER(s.chart_type) = ?
+                      AND s.genre_id = ?
+                    GROUP BY s.date
+                    ORDER BY s.date
+                    """,
+                    (app_id, app_id, country, chart, target_genre),
+                ).fetchall()
+                if not rows:
+                    rows = conn.execute(
+                        """
+                        SELECT s.date,
+                               MIN(r.rank_no) AS best_rank,
+                               GROUP_CONCAT(DISTINCT s.genre_name) AS genres,
+                               MAX(r.name) AS name
+                        FROM rankings r
+                        JOIN snapshots s ON s.id = r.snapshot_id
+                        WHERE (CAST(r.app_id AS TEXT) = ? OR r.app_id = ?)
+                          AND LOWER(s.country) = ?
+                          AND LOWER(s.chart_type) = ?
+                        GROUP BY s.date
+                        ORDER BY s.date
+                        """,
+                        (app_id, app_id, country, chart),
+                    ).fetchall()
+            trends[str(app_id)] = [dict(row) for row in rows]
+        self._send_json({
+            "app_ids": app_ids,
+            "store": store,
+            "country": country,
+            "chart": chart,
+            "trends": trends
+        })
+
+    def _api_publisher(self, conn: sqlite3.Connection, query: str) -> None:
+        developer = self._param(query, "developer")
+        date = self._param(query, "date")
         store = self._param(query, "store") or "app_store"
-        if not app_id or not country or not chart:
-            self._send_json({"error": "app_id, country, chart are required"}, status=400)
+        if not developer or not date:
+            self._send_json({"error": "developer and date are required"}, status=400)
             return
         if store == "play":
             rows = conn.execute(
                 """
-                SELECT s.date,
-                       MIN(r.rank_no) AS best_rank,
-                       GROUP_CONCAT(DISTINCT s.category_name) AS genres,
-                       MAX(r.name) AS name
+                SELECT DISTINCT r.package_name AS app_id, r.name, r.rank_no,
+                                s.country, s.chart_type, s.category_name AS genre_name, a.icon_url
                 FROM play_rankings r
                 JOIN play_snapshots s ON s.id = r.snapshot_id
-                WHERE r.package_name = ? AND s.country = ? AND s.chart_type = ?
-                GROUP BY s.date
-                ORDER BY s.date
+                LEFT JOIN play_apps a ON a.package_name = r.package_name
+                WHERE r.developer = ? AND s.date = ?
+                ORDER BY r.name, s.country, r.rank_no
                 """,
-                (app_id, country, chart),
+                (developer, date),
             ).fetchall()
         else:
             rows = conn.execute(
                 """
-                SELECT s.date,
-                       MIN(r.rank_no) AS best_rank,
-                       GROUP_CONCAT(DISTINCT s.genre_name) AS genres,
-                       MAX(r.name) AS name
+                SELECT DISTINCT r.app_id, r.name, r.rank_no,
+                                s.country, s.chart_type, s.genre_name, a.icon_url
                 FROM rankings r
                 JOIN snapshots s ON s.id = r.snapshot_id
-                WHERE r.app_id = ? AND s.country = ? AND s.chart_type = ?
-                GROUP BY s.date
-                ORDER BY s.date
+                LEFT JOIN apps a ON a.app_id = r.app_id
+                WHERE r.developer = ? AND s.date = ?
+                ORDER BY r.name, s.country, r.rank_no
                 """,
-                (app_id, country, chart),
+                (developer, date),
             ).fetchall()
-        self._send_json({"app_id": app_id, "store": store, "rows": [dict(row) for row in rows]})
+        apps_map = {}
+        for row in rows:
+            aid = str(row["app_id"])
+            if aid not in apps_map:
+                apps_map[aid] = {
+                    "app_id": aid,
+                    "name": row["name"],
+                    "icon_url": row["icon_url"],
+                    "entries": []
+                }
+            apps_map[aid]["entries"].append({
+                "country": row["country"],
+                "chart": row["chart_type"],
+                "genre": (
+                    config.play_category_display_name(row["genre_name"])
+                    if store == "play"
+                    else config.genre_display_name(row["genre_name"])
+                ),
+                "rank": row["rank_no"]
+            })
+        self._send_json({
+            "developer": developer,
+            "date": date,
+            "store": store,
+            "apps": list(apps_map.values())
+        })
 
 
 def start_dashboard(
     db_path: Path = config.DB_PATH,
-    host: str = "127.0.0.1",
+    host: str = "0.0.0.0",
     port: int = 8000,
     open_browser: bool = True,
 ) -> DashboardServer:
     db.init_db(db_path)
     DashboardHandler.db_path = db_path
     server = DashboardServer((host, port), DashboardHandler)
-    url = f"http://{host}:{port}"
+    display_host = "127.0.0.1" if host == "0.0.0.0" else host
+    url = f"http://{display_host}:{port}"
     print(f"App Store Top 30 dashboard running at {url}", flush=True)
     if open_browser:
         webbrowser.open(url)

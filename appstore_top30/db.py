@@ -99,6 +99,48 @@ def init_db(db_path: Path) -> None:
         conn.commit()
 
 
+def count_snapshots(
+    conn: sqlite3.Connection,
+    date: str,
+    countries: list[str],
+    charts: list[str],
+) -> int:
+    """Count existing snapshots for a date, countries, and chart types."""
+    if not countries or not charts:
+        return 0
+    placeholders_countries = ",".join("?" for _ in countries)
+    placeholders_charts = ",".join("?" for _ in charts)
+    row = conn.execute(
+        f"""
+        SELECT COUNT(*) AS cnt FROM snapshots
+        WHERE date = ? AND country IN ({placeholders_countries}) AND chart_type IN ({placeholders_charts})
+        """,
+        (date, *countries, *charts),
+    ).fetchone()
+    return int(row["cnt"]) if row else 0
+
+
+def count_play_snapshots(
+    conn: sqlite3.Connection,
+    date: str,
+    countries: list[str],
+    charts: list[str],
+) -> int:
+    """Count existing Google Play snapshots for a date, countries, and chart types."""
+    if not countries or not charts:
+        return 0
+    placeholders_countries = ",".join("?" for _ in countries)
+    placeholders_charts = ",".join("?" for _ in charts)
+    row = conn.execute(
+        f"""
+        SELECT COUNT(*) AS cnt FROM play_snapshots
+        WHERE date = ? AND country IN ({placeholders_countries}) AND chart_type IN ({placeholders_charts})
+        """,
+        (date, *countries, *charts),
+    ).fetchone()
+    return int(row["cnt"]) if row else 0
+
+
 def clear_snapshots(
     conn: sqlite3.Connection,
     date: str,

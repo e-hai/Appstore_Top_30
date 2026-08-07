@@ -15,7 +15,10 @@
         <div class="content-title-row">
           <strong class="content-title">榜单分析</strong>
           <div class="header-controls">
-            <span id="header-meta" class="header-meta"></span>
+            <button type="button" id="debug-btn" class="debug-btn" title="查看 API 原始 JSON 调试数据">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+              <span>JSON 调试</span>
+            </button>
             <div class="theme-switch" role="group" aria-label="主题">
               <button type="button" class="theme-option" data-theme="dark" aria-pressed="true">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -57,17 +60,21 @@
       </header>
 
       <main class="dashboard-grid">
-        <section class="panel snapshot-panel">
-          <div class="panel-title">快照概览</div>
-          <div id="snapshot-grid" class="snapshot-grid"></div>
-        </section>
-
         <section class="panel table-panel">
           <div class="panel-head">
-            <div>
+            <div class="panel-head-left">
               <div id="panel-title" class="panel-title">榜单明细</div>
               <div id="table-count" class="panel-sub"></div>
             </div>
+
+            <!-- 功能一：异动筛选切页 -->
+            <div class="view-tabs" role="tablist">
+              <button type="button" class="tab-btn active" data-tab="all">全榜</button>
+              <button type="button" class="tab-btn" data-tab="up">🔥 飙升榜</button>
+              <button type="button" class="tab-btn" data-tab="new">🆕 新上榜</button>
+              <button type="button" class="tab-btn" data-tab="down">🔻 跌幅榜</button>
+            </div>
+
             <div class="search-box" id="search-box">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></svg>
               <input id="search-input" type="search" placeholder="搜索应用或开发者">
@@ -82,34 +89,126 @@
           </div>
         </section>
 
-        <section class="panel trends-panel">
+        <section id="trends-section" class="panel trends-panel">
           <div class="panel-head">
             <div>
-              <div id="trends-title" class="panel-title">榜单趋势</div>
-              <div id="trends-meta" class="panel-sub"></div>
+              <div id="trends-title" class="panel-title">📈 榜单趋势</div>
+              <div id="trends-meta" class="panel-sub">默认显示当前榜单 Top 5 应用大盘走势</div>
+            </div>
+            <div class="trends-controls">
+              <button type="button" id="btn-attribution" class="btn-secondary btn-sm">💡 归因分析</button>
+              <button type="button" id="reset-top5-btn" class="btn-secondary btn-sm hidden">↺ 重置 Top 5</button>
             </div>
           </div>
           <div id="trends-chart" class="trends-chart"></div>
+          <p class="trend-note">数值越小排名越靠前，相同日期取最佳排名。</p>
+
+          <!-- 趋势大盘深度分析微型面板 (位于趋势图下方) -->
+          <div id="trend-insights-grid" class="trend-insights-grid">
+            <div class="insight-card">
+              <span class="insight-label">🚀 最大上升名次</span>
+              <span id="quant-top-spiker" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">👑 最强留存应用</span>
+              <span id="quant-top-stable" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">⚡ 榜单竞争热度</span>
+              <span id="quant-avg-volatility" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">🔥 飙升/新上榜数</span>
+              <span id="quant-spiking-count" class="insight-value">-</span>
+            </div>
+          </div>
         </section>
       </main>
     </div>
   </div>
 
-  <div id="trend-drawer" class="drawer" aria-hidden="true">
+  <!-- 大盘异动归因分析抽屉 -->
+  <div id="attribution-drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">
       <div>
-        <div class="panel-title" id="trend-title">排名趋势</div>
-        <div class="panel-sub" id="trend-meta"></div>
+        <div class="panel-title" id="attr-title">💡 当日大盘驱动因素归因分析</div>
+        <div class="panel-sub" id="attr-meta">今日大盘异动与趋势洞察</div>
       </div>
-      <button id="trend-close" class="icon-button" aria-label="关闭" title="关闭">
+      <button id="attr-close" class="icon-button" aria-label="关闭" title="关闭">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="drawer-body">
-      <div id="trend-chart" class="trend-chart"></div>
-      <p class="trend-note">数值越小排名越靠前，相同日期取最佳排名。</p>
+      <div id="attribution-summary-drawer" class="attribution-summary">-</div>
+      <div id="attribution-factors-list-drawer" class="attribution-factors-list" style="margin-top:16px;"></div>
+
+      <!-- 🚀 冲榜爆发 Top 3 -->
+      <div class="attr-section">
+        <div class="attr-section-title">🚀 今日冲榜爆发 Top 3</div>
+        <div id="attr-rising-list" class="attr-list"></div>
+      </div>
+
+      <!-- 👑 最强留存 Top 3 -->
+      <div class="attr-section">
+        <div class="attr-section-title">👑 最强留存霸榜 Top 3</div>
+        <div id="attr-stable-list" class="attr-list"></div>
+      </div>
+
+      <!-- 📉 名次下滑 Top 3 -->
+      <div class="attr-section">
+        <div class="attr-section-title">📉 流量回调下滑 Top 3</div>
+        <div id="attr-falling-list" class="attr-list"></div>
+      </div>
+
+      <!-- 🆕 今日新上榜 App -->
+      <div class="attr-section">
+        <div class="attr-section-title">🆕 今日新上榜 App</div>
+        <div id="attr-new-list" class="attr-list"></div>
+      </div>
     </div>
   </div>
+
+  <!-- 功能三：开发者/发行商矩阵分析抽屉 -->
+  <div id="publisher-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title" id="pub-title">发行商产品矩阵</div>
+        <div class="panel-sub" id="pub-meta"></div>
+      </div>
+      <button id="pub-close" class="icon-button" aria-label="关闭" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <div id="pub-content" class="pub-content"></div>
+    </div>
+  </div>
+
+  <!-- 调试 JSON 数据抽屉 -->
+  <div id="debug-drawer" class="drawer debug-drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title">🛠️ API 原始 JSON 调试数据</div>
+        <div class="panel-sub" id="debug-meta">实时 API 响应结构</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button type="button" id="debug-copy-btn" class="btn-secondary btn-sm">📋 复制 JSON</button>
+        <button type="button" id="debug-close" class="icon-button" aria-label="关闭" title="关闭">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div class="debug-tabs">
+        <button type="button" class="debug-tab-btn active" data-type="rankings">📋 rankings (明细)</button>
+        <button type="button" class="debug-tab-btn" data-type="trend">📈 trend (趋势)</button>
+        <button type="button" class="debug-tab-btn" data-type="summary">📊 summary (概览)</button>
+        <button type="button" class="debug-tab-btn" data-type="meta">🌐 meta (元数据)</button>
+      </div>
+      <pre id="debug-json-code" class="debug-json-code"><code>// 点击上方切换要查看的 API 响应 JSON...</code></pre>
+    </div>
+  </div>
+
   <div id="drawer-mask" class="drawer-mask hidden"></div>
 
   <script src="/static/app.js"></script>

@@ -417,6 +417,7 @@ def fetch_day(
     regions: list[str] | None = None,
     charts: list[str] | None = None,
     top_n: int = config.TOP_N,
+    force: bool = False,
 ) -> dict:
     """Fetch daily Google Play snapshots for configured regions/charts."""
     db.init_db(db_path)
@@ -424,6 +425,31 @@ def fetch_day(
     chart_keys = charts or list(config.CHART_TYPES.keys())
     countries = [c for c in config.iter_countries() if c.region in region_keys]
     conn = db.connect(db_path)
+
+    # 当天完整度判断：如果已抓取 Google Play 快照数达到预估完整阈值且未强制更新，则跳过
+    if not force:
+        existing_cnt = db.count_play_snapshots(conn, date, [c.code for c in countries], chart_keys)
+        threshold = len(countries) * len(chart_keys) * 30
+        if existing_cnt >= threshold and existing_cnt > 0:
+            LOGGER.info(
+                "Google Play: date %s already complete (%s snapshots exist >= threshold %s). Skipping fetch.",
+                date,
+                existing_cnt,
+                threshold,
+            )
+            conn.close()
+            return {
+                "date": date,
+                "skipped": True,
+                "reason": f"already complete ({existing_cnt} snapshots)",
+                "countries": len(countries),
+                "feeds_total": existing_cnt,
+                "feeds_ok": existing_cnt,
+                "feeds_failed": [],
+                "entries_total": 0,
+                "saved_snapshots": existing_cnt,
+            }
+
     try:
         db.clear_play_snapshots(conn, date, [c.code for c in countries], chart_keys)
     finally:

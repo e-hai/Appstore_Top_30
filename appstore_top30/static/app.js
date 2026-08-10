@@ -478,72 +478,62 @@ function renderQuantSummary() {
       .join("");
   }
 
-  // Helper function to build 4-pillar commercial attribution HTML
+  // Helper function to build 4-pillar inline pills HTML
   const buildCommercialPillarsHtml = (a) => {
     const p = a.driver?.pillars;
     if (!p) return '';
     return `
-      <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:4px; font-size:9.5px; background:var(--surface-2); padding:6px 8px; border-radius:4px; border:1px solid var(--border); margin-top:2px;">
-        <div>📦 <strong>版本更新:</strong> ${esc(p.aso_version || '-')}</div>
-        <div>🎯 <strong>广告宣传:</strong> ${esc(p.ua_sov || '-')}</div>
-        <div>🎉 <strong>运营活动:</strong> ${esc(p.liveops || '-')}</div>
-        <div>💰 <strong>价格收费:</strong> ${esc(p.monetization || '-')}</div>
+      <div class="attr-pill-row">
+        <span class="attr-pillar-pill">📦 <strong>版本:</strong> ${esc(p.aso_version || '-')}</span>
+        <span class="attr-pillar-pill">🎯 <strong>宣传:</strong> ${esc(p.ua_sov || '-')}</span>
+        <span class="attr-pillar-pill">🎉 <strong>活动:</strong> ${esc(p.liveops || '-')}</span>
+        <span class="attr-pillar-pill">💰 <strong>收费:</strong> ${esc(p.monetization || '-')}</span>
       </div>`;
   };
 
-  // Helper function to build commercial reports HTML
+  // Helper function to build multi-channel news card HTML
   const buildCommercialReportsHtml = (a) => {
     if (!a.commercial_reports || !a.commercial_reports.length) return '';
     return `
-      <div style="font-size:10px; background:var(--surface); border:1px dashed var(--border); padding:6px 8px; border-radius:4px; margin-top:4px; line-height:1.45;">
-        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">📰 全网新闻与商业平台报道:</div>
+      <div class="attr-news-card">
+        <div class="attr-news-header">📰 全网新闻与商业平台报道</div>
         ${a.commercial_reports.map(r => `
-          <div style="margin-bottom:4px;">
-            <a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--accent-hover); font-weight:600; text-decoration:underline;">[${esc(r.platform)}] ${esc(r.title)} ↗</a>
-            <div style="color:var(--text-2); font-size:9.5px; line-height:1.35;">${esc(r.snippet)}</div>
+          <div class="attr-news-item">
+            <a class="attr-news-link" href="${esc(r.url)}" target="_blank" rel="noopener">[${esc(r.platform)}] ${esc(r.title)} ↗</a>
+            <div class="attr-news-snippet">${esc(r.snippet)}</div>
           </div>
         `).join('')}
       </div>`;
   };
 
-  // Helper function to build empirical data HTML
-  const buildEmpiricalHtml = (a) => {
-    if (!a.empirical || !a.empirical.has_empirical) return '';
-    return `
-      <div style="font-size:10px; color:var(--accent-hover); background:var(--surface); border:1px solid var(--border); padding:6px 8px; border-radius:4px; margin-top:4px; line-height:1.45;">
-        <div style="font-weight:700; color:var(--text); margin-bottom:2px;">📦 App Store 真实版本更新数据印证:</div>
-        <div>· 官方最新版本: <strong>v${esc(a.empirical.version)}</strong>（发布于 <code>${esc(a.empirical.release_date)}</code>）</div>
-        ${a.empirical.release_notes ? `<div style="color:var(--text-2); margin-top:3px; font-style:italic;">· 官方更新日志: "${esc(a.empirical.release_notes)}"</div>` : ''}
-      </div>`;
-  };
+  // Helper function to render a unified modern App Card
+  const renderAppCard = (a, extraBadgeHtml = '') => `
+    <div class="attr-card">
+      <div class="attr-card-header">
+        <div class="attr-card-left">
+          <span class="attr-rank-badge">#${a.curr_rank}</span>
+          <div class="attr-app-info">
+            <div class="attr-app-name">${esc(a.name)}</div>
+            <div class="attr-app-dev">${esc(a.genre_name)} · ${esc(a.developer)}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span class="badge ${a.driver?.badge_cls || 'up'}">${esc(a.driver?.tag || '异动')}</span>
+          ${extraBadgeHtml}
+        </div>
+      </div>
+      <div class="attr-summary-box">
+        ${esc(a.driver?.detail || '')}
+      </div>
+      ${buildCommercialPillarsHtml(a)}
+      ${buildCommercialReportsHtml(a)}
+    </div>`;
 
   // 渲染 🚀 今日冲榜爆发 Top 3
   const elRising = document.getElementById("attr-rising-list");
   if (elRising) {
     elRising.innerHTML = (attr.rising_apps && attr.rising_apps.length > 0)
-      ? attr.rising_apps.map(a => `
-        <div class="attr-item" style="flex-direction:column; align-items:stretch; gap:6px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="attr-item-left">
-              <span class="attr-item-rank">#${a.curr_rank}</span>
-              <div>
-                <div class="attr-item-name">${esc(a.name)}</div>
-                <div class="attr-item-genre">${esc(a.genre_name)} · ${esc(a.developer)}</div>
-              </div>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span class="badge ${a.driver?.badge_cls || 'up'}">${esc(a.driver?.tag || '爆发')}</span>
-              <span class="badge up">▲ +${a.rank_change}</span>
-            </div>
-          </div>
-          ${buildCommercialPillarsHtml(a)}
-          <div style="font-size:10.5px; color:var(--text-2); background:var(--surface); padding:6px 8px; border-radius:4px; line-height:1.4;">
-            💡 <strong>归因推演 (${esc(a.driver?.confidence || '90%')}):</strong> ${esc(a.driver?.detail || '')}
-          </div>
-          ${buildEmpiricalHtml(a)}
-          ${buildCommercialReportsHtml(a)}
-        </div>
-      `).join("")
+      ? attr.rising_apps.map(a => renderAppCard(a, `<span class="badge up">▲ +${a.rank_change}</span>`)).join("")
       : '<div class="no-data" style="font-size:11px; color:var(--text-3); text-align:center; padding:8px;">今日无明显爆发 App</div>';
   }
 
@@ -551,28 +541,7 @@ function renderQuantSummary() {
   const elStableList = document.getElementById("attr-stable-list");
   if (elStableList) {
     elStableList.innerHTML = (attr.stable_apps && attr.stable_apps.length > 0)
-      ? attr.stable_apps.map(a => `
-        <div class="attr-item" style="flex-direction:column; align-items:stretch; gap:6px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="attr-item-left">
-              <span class="attr-item-rank">#${a.curr_rank}</span>
-              <div>
-                <div class="attr-item-name">${esc(a.name)}</div>
-                <div class="attr-item-genre">${esc(a.genre_name)} · ${esc(a.developer)}</div>
-              </div>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span class="badge ${a.driver?.badge_cls || 'first'}">${esc(a.driver?.tag || '留存')}</span>
-              <span class="badge first">Std: ${a.std_dev.toFixed(2)}</span>
-            </div>
-          </div>
-          ${buildCommercialPillarsHtml(a)}
-          <div style="font-size:10.5px; color:var(--text-2); background:var(--surface); padding:6px 8px; border-radius:4px; line-height:1.4;">
-            💡 <strong>归因推演 (${esc(a.driver?.confidence || '90%')}):</strong> ${esc(a.driver?.detail || '')}
-          </div>
-          ${buildEmpiricalHtml(a)}
-        </div>
-      `).join("")
+      ? attr.stable_apps.map(a => renderAppCard(a, `<span class="badge first">留存榜</span>`)).join("")
       : '<div class="no-data" style="font-size:11px; color:var(--text-3); text-align:center; padding:8px;">暂无数据</div>';
   }
 
@@ -580,28 +549,7 @@ function renderQuantSummary() {
   const elFalling = document.getElementById("attr-falling-list");
   if (elFalling) {
     elFalling.innerHTML = (attr.falling_apps && attr.falling_apps.length > 0)
-      ? attr.falling_apps.map(a => `
-        <div class="attr-item" style="flex-direction:column; align-items:stretch; gap:6px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="attr-item-left">
-              <span class="attr-item-rank">#${a.curr_rank}</span>
-              <div>
-                <div class="attr-item-name">${esc(a.name)}</div>
-                <div class="attr-item-genre">${esc(a.genre_name)} · ${esc(a.developer)}</div>
-              </div>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span class="badge ${a.driver?.badge_cls || 'down'}">${esc(a.driver?.tag || '回调')}</span>
-              <span class="badge down">▼ ${a.rank_change}</span>
-            </div>
-          </div>
-          ${buildCommercialPillarsHtml(a)}
-          <div style="font-size:10.5px; color:var(--text-2); background:var(--surface); padding:6px 8px; border-radius:4px; line-height:1.4;">
-            💡 <strong>归因推演 (${esc(a.driver?.confidence || '90%')}):</strong> ${esc(a.driver?.detail || '')}
-          </div>
-          ${buildEmpiricalHtml(a)}
-        </div>
-      `).join("")
+      ? attr.falling_apps.map(a => renderAppCard(a, `<span class="badge down">▼ ${a.rank_change}</span>`)).join("")
       : '<div class="no-data" style="font-size:11px; color:var(--text-3); text-align:center; padding:8px;">今日无明显下滑 App</div>';
   }
 
@@ -609,28 +557,7 @@ function renderQuantSummary() {
   const elNew = document.getElementById("attr-new-list");
   if (elNew) {
     elNew.innerHTML = (attr.new_apps && attr.new_apps.length > 0)
-      ? attr.new_apps.map(a => `
-        <div class="attr-item" style="flex-direction:column; align-items:stretch; gap:6px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="attr-item-left">
-              <span class="attr-item-rank">#${a.curr_rank}</span>
-              <div>
-                <div class="attr-item-name">${esc(a.name)}</div>
-                <div class="attr-item-genre">${esc(a.genre_name)} · ${esc(a.developer)}</div>
-              </div>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center;">
-              <span class="badge ${a.driver?.badge_cls || 'new'}">${esc(a.driver?.tag || '新上榜')}</span>
-              <span class="badge new">NEW</span>
-            </div>
-          </div>
-          ${buildCommercialPillarsHtml(a)}
-          <div style="font-size:10.5px; color:var(--text-2); background:var(--surface); padding:6px 8px; border-radius:4px; line-height:1.4;">
-            💡 <strong>归因推演 (${esc(a.driver?.confidence || '90%')}):</strong> ${esc(a.driver?.detail || '')}
-          </div>
-          ${buildEmpiricalHtml(a)}
-        </div>
-      `).join("")
+      ? attr.new_apps.map(a => renderAppCard(a, `<span class="badge new">NEW</span>`)).join("")
       : '<div class="no-data" style="font-size:11px; color:var(--text-3); text-align:center; padding:8px;">今日无新上榜 App</div>';
   }
 }

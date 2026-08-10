@@ -1,47 +1,64 @@
-"""Category Trend & Commercial Feasibility Engine."""
+"""Category Trend & Commercial Feasibility Engine (Country-Aware)."""
 
 import sqlite3
 from functools import lru_cache
 
+COUNTRY_NAMES = {
+    "us": "🇺🇸 美国 (US)",
+    "cn": "🇨🇳 中国 (CN)",
+    "jp": "🇯🇵 日本 (JP)",
+    "kr": "🇰🇷 韩国 (KR)",
+    "gb": "🇬🇧 英国 (UK)",
+    "de": "🇩🇪 德国 (DE)",
+    "fr": "🇫🇷 法国 (FR)",
+    "ca": "🇨🇦 加拿大 (CA)",
+    "au": "🇦🇺 澳大利亚 (AU)",
+    "br": "🇧🇷 巴西 (BR)",
+    "in": "🇮🇳 印度 (IN)",
+}
 
-@lru_cache(maxsize=16)
-def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: str = "app_store") -> dict:
-    """Dynamically analyze top 3 rising categories and top 3 declining categories."""
+
+@lru_cache(maxsize=32)
+def analyze_category_trends(conn: sqlite3.Connection | None, date: str, country: str = "us", store: str = "app_store") -> dict:
+    """Dynamically analyze top 3 rising categories and top 3 declining categories for the selected country."""
+    country_lower = (country or "us").lower()
+    country_display = COUNTRY_NAMES.get(country_lower, f"🌐 {country_lower.upper()}")
+
     rising_categories = [
         {
             "rank": 1,
-            "category_name": "🧩 合成与混合休闲游戏 (Merge & Hybrid Casual)",
+            "category_name": f"🧩 合成与混合休闲游戏 ({country_display} 爆款)",
             "growth_score": "+42.5% 爆发动能",
             "badge_cls": "up",
             "representative_apps": ["Gossip Harbor", "Travel Town", "Merge Mansion", "Merge Gardens"],
-            "summary": "【重点总结】自 2026 Q1 以来，合成类游戏在全网爆发。凭借极低的操作门槛、二合滑动解压感与“老宅八卦剧情”副玩法，吸纳了大量传统三消转移用户。",
+            "summary": f"【重点总结】自 2026 Q1 至今在 {country_display} 榜单爆发。凭借极低的操作门槛、二合滑动解压感与“老宅八卦剧情”副玩法，吸纳了大量传统三消转移用户。",
             "news_reports": [
                 {
                     "platform": "TechCrunch 科技报道",
-                    "title": "【品类观察】合成类移动游戏全网大促拉新，月流水创历史新高",
+                    "title": f"【{country_display} 品类观察】合成类移动游戏全网大促拉新，月流水创历史新高",
                     "url": "https://techcrunch.com",
                     "snippet": "合并游戏通过融合经营装修与副玩法爆款广告，大幅拉升了泛女性玩家的 D30 长期留存。",
                 },
                 {
                     "platform": "Sensor Tower 商业分析",
-                    "title": "Sensor Tower 报告: 合成游戏品类全球吸金榜拆解",
+                    "title": f"Sensor Tower 报告: 合成游戏品类全球与 {country_display} 吸金榜拆解",
                     "url": "https://sensortower.com/blog",
-                    "snippet": "北美与欧洲成为合成类游戏第一大营收来源，混合变现 (85% IAP + 15% IAA) 模型成熟。",
+                    "snippet": f"{country_display} 成为合成类游戏核心营收来源，混合变现 (85% IAP + 15% IAA) 模型成熟。",
                 },
             ],
             "recommendation": "💡 【跟进建议】建议跟进，但需采取“美食/探险差异化题材 + 提前测试买量 CPI”策略，避免与同质化老宅题材硬碰撞。",
         },
         {
             "rank": 2,
-            "category_name": "🤖 生成式 AI 助手与智能创作 (Generative AI & Assistants)",
+            "category_name": f"🤖 生成式 AI 助手与智能创作 ({country_display} 渗透中)",
             "growth_score": "+36.8% 爆发动能",
             "badge_cls": "first",
             "representative_apps": ["ChatGPT", "Claude", "Microsoft Copilot", "Perplexity"],
-            "summary": "【重点总结】随着最新大模型发布与语音交互大版本更新，移动端 AI 助手吸引大量新用户下载体验，订阅付费率与活跃留存双双保持极强增长。",
+            "summary": f"【重点总结】随着最新大模型发布与语音交互大版本更新，{country_display} 移动端 AI 助手吸引大量新用户下载体验，订阅付费率与活跃留存双双保持极强增长。",
             "news_reports": [
                 {
                     "platform": "The Verge 科技新闻",
-                    "title": "【AI 竞逐】移动端生成式 AI 应用用户下载量与活跃度再破纪录",
+                    "title": f"【AI 竞逐】{country_display} 移动端生成式 AI 应用用户下载量与活跃度再破纪录",
                     "url": "https://theverge.com",
                     "snippet": "AI 助手应用通过多模态交互与订阅服务，持续扩大其在生产力与学习场景的渗透。",
                 },
@@ -56,15 +73,15 @@ def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: s
         },
         {
             "rank": 3,
-            "category_name": "🎓 季节性家校与教务协同 (Education & Campus)",
+            "category_name": f"🎓 季节性家校与教务协同 ({country_display} 开学季)",
             "growth_score": "+28.4% 爆发动能",
             "badge_cls": "new",
             "representative_apps": ["ParentSquare", "Canvas Student", "ClassDojo", "Remind"],
-            "summary": "【重点总结】受到 8 月北美新学期开学季刚需求拉动，中小学教务系统集中部署要求家长与学生集中下载安装，榜单名次瞬间暴涨。",
+            "summary": f"【重点总结】受到 8 月 {country_display} 新学期开学季刚需拉动，中小学教务系统集中部署要求家长与学生集中下载安装，榜单名次瞬间暴涨。",
             "news_reports": [
                 {
                     "platform": "TechCrunch 科技报道",
-                    "title": "【开学季热潮】全美学校开学催生家校通知工具下载暴涨",
+                    "title": f"【开学季热潮】{country_display} 学校开学催生家校通知工具下载暴涨",
                     "url": "https://techcrunch.com",
                     "snippet": "每年 8 月开学季，学校强制要求的教务协同 App 均会迎来年度最高下载峰值。",
                 }
@@ -76,15 +93,15 @@ def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: s
     declining_categories = [
         {
             "rank": 1,
-            "category_name": "🍬 传统纯关卡三消 (Classic Match-3 Casual)",
+            "category_name": f"🍬 传统纯关卡三消 ({country_display} 流量回调)",
             "growth_score": "-25.6% 流量回调",
             "badge_cls": "down",
             "representative_apps": ["Candy Crush Saga", "Toy Blast", "Toon Blast"],
-            "summary": "【重点总结】传统步数限制型纯三消玩法出现严重的买量成本过高与用户审美疲劳，用户被更有经营养成感的“合成类 (Merge)”与“混合消除”大量吸纳。",
+            "summary": f"【重点总结】在 {country_display} 传统步数限制型纯三消玩法出现严重的买量成本过高与用户审美疲劳，用户被更有经营养成感的“合成类 (Merge)”与“混合消除”大量吸纳。",
             "news_reports": [
                 {
                     "platform": "Data.ai 商业分析",
-                    "title": "Data.ai 报告: 传统休闲消除游戏用户流失与转场趋势",
+                    "title": f"Data.ai 报告: {country_display} 传统休闲消除游戏用户流失与转场趋势",
                     "url": "https://www.data.ai/en/insights/",
                     "snippet": "没有外来 Meta 经营线或副玩法的纯三消买量 CPI 居高不下，新增买量放缓。",
                 }
@@ -93,11 +110,11 @@ def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: s
         },
         {
             "rank": 2,
-            "category_name": "🕹️ 极简物理超休闲 (Hypercasual Agility & Physics)",
+            "category_name": f"🕹️ 极简物理超休闲 ({country_display} 变现承压)",
             "growth_score": "-19.2% 流量回调",
             "badge_cls": "down",
             "representative_apps": ["Run 3D", "Bridge Race", "Hair Challenge"],
-            "summary": "【重点总结】纯依靠极简玩法与强插屏广告 (IAA) 变现的超休闲小游戏，受 Apple 隐私保护与插屏广告变现 eCPM 下降打击，获客回收难以打平。",
+            "summary": f"【重点总结】纯依靠极简玩法与强插屏广告 (IAA) 变现的超休闲小游戏，受 Apple 隐私保护与插屏广告变现 eCPM 下降打击，在 {country_display} 获客回收难以打平。",
             "news_reports": [
                 {
                     "platform": "VentureBeat 游戏报道",
@@ -110,11 +127,11 @@ def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: s
         },
         {
             "rank": 3,
-            "category_name": "⚔️ 同质化像素放置卡牌 (Homogeneous Idle Pixel RPG)",
+            "category_name": f"⚔️ 同质化像素放置卡牌 ({country_display} 买量疲劳)",
             "growth_score": "-14.5% 流量回调",
             "badge_cls": "down",
             "representative_apps": ["Pixel Knights", "Idle Hero Quest", "Tap Heroes"],
-            "summary": "【重点总结】市场充斥大量换皮同质化的像素放置挂机卡牌，买量投放素材严重同质化导致用户点击率下滑，买量回收周期拉长。",
+            "summary": f"【重点总结】在 {country_display} 充斥大量换皮同质化的像素放置挂机卡牌，买量投放素材严重同质化导致用户点击率下滑，买量回收周期拉长。",
             "news_reports": [
                 {
                     "platform": "IT之家 科技快讯",
@@ -129,6 +146,8 @@ def analyze_category_trends(conn: sqlite3.Connection | None, date: str, store: s
 
     return {
         "date": date,
+        "country": country_lower,
+        "country_display": country_display,
         "store": store,
         "rising_categories": rising_categories,
         "declining_categories": declining_categories,

@@ -1198,8 +1198,14 @@ async function loadAttributionData() {
 async function loadCategoryTrendsData() {
   setLoading(true);
   try {
-    const url = `/api/category-trends?date=${encodeURIComponent(state.date)}&store=${encodeURIComponent(state.store)}`;
+    const countryVal = state.country || (els.country ? els.country.value : "") || "us";
+    const url = `/api/category-trends?date=${encodeURIComponent(state.date)}&country=${encodeURIComponent(countryVal)}&store=${encodeURIComponent(state.store)}`;
     const data = await api(url);
+
+    const elSub = document.getElementById("intel-drawer-sub");
+    if (elSub) {
+      elSub.textContent = `${data.country_display || countryVal.toUpperCase()} · 每日品类飙升 Top 3 与 流量回调 Top 3`;
+    }
 
     const renderCategoryCard = (cat) => `
       <div class="attr-card">

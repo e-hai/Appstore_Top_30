@@ -240,6 +240,20 @@ function bindEvents() {
     });
   }
 
+  // 宽度自适应 / 全屏展示模式切换
+  const btnToggleWidth = document.getElementById("btn-toggle-table-width");
+  if (btnToggleWidth) {
+    let isFullWidth = false;
+    btnToggleWidth.addEventListener("click", () => {
+      const grid = document.querySelector(".dashboard-grid");
+      if (!grid) return;
+      isFullWidth = !isFullWidth;
+      grid.classList.toggle("full-table-mode", isFullWidth);
+      btnToggleWidth.textContent = isFullWidth ? "📋 双栏对照" : "↔ 宽度自适应";
+      btnToggleWidth.title = isFullWidth ? "切换回双栏趋势对照模式" : "切换榜单明细全屏自适应宽度";
+    });
+  }
+
   // 功能二：重置榜单趋势为 Top 5
   if (els.resetTop5Btn) {
     els.resetTop5Btn.addEventListener("click", () => {

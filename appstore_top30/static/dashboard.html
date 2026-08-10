@@ -15,6 +15,12 @@
         <div class="content-title-row">
           <strong class="content-title">榜单分析</strong>
           <div class="header-controls">
+            <button type="button" id="btn-attribution" class="debug-btn" style="color: var(--accent); border-color: var(--accent);" title="查看异动归因分析">
+              <span>💡 归因分析</span>
+            </button>
+            <button type="button" id="btn-category-trends" class="debug-btn" style="color: var(--accent-hover); border-color: var(--accent-hover);" title="查看品类宏观趋势与爆款/衰退品类分析">
+              <span>📊 品类趋势分析</span>
+            </button>
             <button type="button" id="debug-btn" class="debug-btn" title="查看 API 原始 JSON 调试数据">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
               <span>JSON 调试</span>
@@ -184,6 +190,32 @@
     </div>
     <div class="drawer-body">
       <div id="pub-content" class="pub-content"></div>
+    </div>
+  </div>
+
+  <!-- 功能四：全网品类宏观趋势分析抽屉 -->
+  <div id="category-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title">📊 全网品类宏观趋势分析</div>
+        <div class="panel-sub" id="category-drawer-sub">每日品类爆发 Top 3 与 流量回调 Top 3 智能推演</div>
+      </div>
+      <button id="category-close" class="icon-button" aria-label="关闭" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <!-- 🚀 最具飙升潜力品类 Top 3 -->
+      <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
+        <div class="attr-section-title">🚀 最具飙升潜力品类 Top 3</div>
+        <div id="category-rising-list" class="attr-list"></div>
+      </div>
+
+      <!-- 📉 流量回调/衰退品类 Top 3 -->
+      <div class="attr-section">
+        <div class="attr-section-title">📉 流量回调/衰退品类 Top 3</div>
+        <div id="category-declining-list" class="attr-list"></div>
+      </div>
     </div>
   </div>
 

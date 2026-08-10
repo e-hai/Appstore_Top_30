@@ -268,11 +268,17 @@ function bindEvents() {
   if (btnAttr) btnAttr.addEventListener("click", showAttributionDrawer);
   if (attrClose) attrClose.addEventListener("click", closeAttributionDrawer);
 
+  const btnCategoryTrends = document.getElementById("btn-category-trends");
+  const categoryClose = document.getElementById("category-close");
+  if (btnCategoryTrends) btnCategoryTrends.addEventListener("click", showCategoryTrendsDrawer);
+  if (categoryClose) categoryClose.addEventListener("click", closeCategoryTrendsDrawer);
+
   els.pubClose.addEventListener("click", closePublisherDrawer);
   els.drawerMask.addEventListener("click", () => {
     closePublisherDrawer();
     closeDebugDrawer();
     closeAttributionDrawer();
+    closeCategoryTrendsDrawer();
   });
 
   for (const button of els.themeButtons) {
@@ -1100,6 +1106,83 @@ async function showPublisherMatrix(developer) {
 function closePublisherDrawer() {
   els.pubDrawer.classList.remove("open");
   els.pubDrawer.setAttribute("aria-hidden", "true");
+  els.drawerMask.classList.add("hidden");
+}
+
+// 功能四：全网品类宏观趋势分析抽屉 (Category Trends & Market Feasibility)
+async function showCategoryTrendsDrawer() {
+  setLoading(true);
+  try {
+    const url = `/api/category-trends?date=${encodeURIComponent(state.date)}&store=${encodeURIComponent(state.store)}`;
+    const data = await api(url);
+
+    const renderCategoryCard = (cat) => `
+      <div class="attr-card">
+        <div class="attr-card-header">
+          <div class="attr-card-left">
+            <span class="attr-rank-badge" style="width:auto; padding:0 8px; font-size:12px;">TOP ${cat.rank}</span>
+            <div class="attr-app-info">
+              <div class="attr-app-name" style="font-size:14px; font-weight:700;">${esc(cat.category_name)}</div>
+              <div class="attr-app-dev" style="color:var(--accent); font-weight:600;">爆款代表: ${esc((cat.representative_apps || []).join(' / '))}</div>
+            </div>
+          </div>
+          <span class="badge ${cat.badge_cls || 'up'}">${esc(cat.growth_score)}</span>
+        </div>
+
+        <div class="attr-summary-box">
+          ${esc(cat.summary || '')}
+        </div>
+
+        <div style="font-size:11.5px; color:var(--text); background:var(--surface); border:1px solid var(--border); border-left:3.5px solid var(--accent); padding:8px 10px; border-radius:6px; font-weight:600;">
+          ${esc(cat.recommendation || '')}
+        </div>
+
+        ${cat.news_reports && cat.news_reports.length ? `
+          <div class="attr-news-card">
+            <div class="attr-news-header">📰 行业深度研究与报道引述</div>
+            ${cat.news_reports.map(r => `
+              <div class="attr-news-item">
+                <a class="attr-news-link" href="${esc(r.url)}" target="_blank" rel="noopener">[${esc(r.platform)}] ${esc(r.title)} ↗</a>
+                <div class="attr-news-snippet">${esc(r.snippet)}</div>
+              </div>
+            `).join('')}
+          </div>` : ''}
+      </div>`;
+
+    const elRising = document.getElementById("category-rising-list");
+    if (elRising) {
+      elRising.innerHTML = (data.rising_categories && data.rising_categories.length)
+        ? data.rising_categories.map(c => renderCategoryCard(c)).join("")
+        : '<div class="no-data">暂无数据</div>';
+    }
+
+    const elDeclining = document.getElementById("category-declining-list");
+    if (elDeclining) {
+      elDeclining.innerHTML = (data.declining_categories && data.declining_categories.length)
+        ? data.declining_categories.map(c => renderCategoryCard(c)).join("")
+        : '<div class="no-data">暂无数据</div>';
+    }
+
+    const elCategoryDrawer = document.getElementById("category-drawer");
+    if (elCategoryDrawer) {
+      elCategoryDrawer.classList.add("open");
+      elCategoryDrawer.setAttribute("aria-hidden", "false");
+      els.drawerMask.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.error("showCategoryTrendsDrawer error:", err);
+    alert("获取品类趋势数据失败: " + (err.message || err));
+  } finally {
+    setLoading(false);
+  }
+}
+
+function closeCategoryTrendsDrawer() {
+  const elCategoryDrawer = document.getElementById("category-drawer");
+  if (elCategoryDrawer) {
+    elCategoryDrawer.classList.remove("open");
+    elCategoryDrawer.setAttribute("aria-hidden", "true");
+  }
   els.drawerMask.classList.add("hidden");
 }
 

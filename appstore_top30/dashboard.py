@@ -147,10 +147,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._api_trend(conn, query)
             elif path == "/api/publisher":
                 self._api_publisher(conn, query)
+            elif path == "/api/category-trends":
+                self._api_category_trends(conn, self._param(query, "date"), self._param(query, "store") or "app_store")
             else:
                 self._send_json({"error": "unknown api"}, status=404)
         finally:
             conn.close()
+
+    def _api_category_trends(self, conn: sqlite3.Connection, date: str | None, store: str = "app_store") -> None:
+        from . import category_intel
+        if not date:
+            date = db.get_latest_date(conn, store=store) or "2026-08-10"
+        res = category_intel.analyze_category_trends(conn, date, store=store)
+        self._send_json(res)
 
     def _api_dates(self, conn: sqlite3.Connection) -> None:
         rows = conn.execute(

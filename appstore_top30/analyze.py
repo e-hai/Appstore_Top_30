@@ -437,6 +437,26 @@ def _infer_growth_driver(app_name: str, genre_name: str, rank_change: int | None
             "monetization": "免费/企业授权"
         }
         detail = f"【Sensor Tower / Data.ai 商业模型推演】微软/谷歌 8 月企业安全合规策略生效，要求员工集中安装 MFA 双重验证，配合 {rel_date} 推出的 v{version} 安全修补版本，引发 B 端集中下载爆发。"
+    elif any(k in name_lower for k in ["vpn", "browser", "tor", "privacy", "safari", "chrome"]):
+        tag = "🇪🇺 政策/DMA合规选择"
+        badge_cls = "first"
+        pillars = {
+            "aso_version": f"v{version} ({rel_date})",
+            "ua_sov": "政策调整合规拉新",
+            "liveops": "欧盟 DMA 浏览器选择屏/隐私规范",
+            "monetization": "免费/高级订阅"
+        }
+        detail = f"【Sensor Tower / Data.ai 商业模型推演】受到 Apple/Google 8 月针对欧盟 DMA 法规及隐私规范（Privacy Manifest）合规政策强制调整，浏览器与隐私工具类 App 引发合规性下载热潮。"
+    elif any(k in name_lower for k in ["shopping", "amazon", "temu", "shein", "walmart", "target"]):
+        tag = "🛍️ 节假日/大促活动"
+        badge_cls = "up"
+        pillars = {
+            "aso_version": f"v{version} ({rel_date})",
+            "ua_sov": "假日大促广告放量",
+            "liveops": "夏季/返校季大促折扣",
+            "monetization": "应用内购物/折扣券"
+        }
+        detail = f"【Sensor Tower / Data.ai 商业模型推演】受夏季/返校季假日消费大促拉动，电商巨头加大全网 Buy-Intent 广告投放，驱动应用商店转化率与下载排名迅速上扬。"
     elif any(k in name_lower for k in ["chatgpt", "claude", "copilot"]):
         tag = "🤖 AI 大模型升级促活"
         badge_cls = "first"

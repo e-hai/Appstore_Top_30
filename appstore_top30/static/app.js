@@ -263,22 +263,39 @@ function bindEvents() {
     });
   }
 
-  const btnAttr = document.getElementById("btn-attribution");
-  const attrClose = document.getElementById("attr-close");
-  if (btnAttr) btnAttr.addEventListener("click", showAttributionDrawer);
-  if (attrClose) attrClose.addEventListener("click", closeAttributionDrawer);
+  // 智能分析大盘统一入口绑定
+  const btnIntelHub = document.getElementById("btn-intel-hub");
+  const intelClose = document.getElementById("intel-close");
+  if (btnIntelHub) btnIntelHub.addEventListener("click", () => showIntelDrawer('attr'));
+  if (intelClose) intelClose.addEventListener("click", closeIntelDrawer);
 
-  const btnCategoryTrends = document.getElementById("btn-category-trends");
-  const categoryClose = document.getElementById("category-close");
-  if (btnCategoryTrends) btnCategoryTrends.addEventListener("click", showCategoryTrendsDrawer);
-  if (categoryClose) categoryClose.addEventListener("click", closeCategoryTrendsDrawer);
+  // 抽屉内 Tab 切页
+  const tabAttr = document.getElementById("intel-tab-attr");
+  const tabCat = document.getElementById("intel-tab-cat");
+  const panelAttr = document.getElementById("intel-panel-attr");
+  const panelCat = document.getElementById("intel-panel-cat");
+
+  if (tabAttr && tabCat && panelAttr && panelCat) {
+    tabAttr.addEventListener("click", () => {
+      tabAttr.classList.add("active");
+      tabCat.classList.remove("active");
+      panelAttr.classList.remove("hidden");
+      panelCat.classList.add("hidden");
+    });
+    tabCat.addEventListener("click", () => {
+      tabCat.classList.add("active");
+      tabAttr.classList.remove("active");
+      panelCat.classList.remove("hidden");
+      panelAttr.classList.add("hidden");
+      loadCategoryTrendsData();
+    });
+  }
 
   els.pubClose.addEventListener("click", closePublisherDrawer);
   els.drawerMask.addEventListener("click", () => {
     closePublisherDrawer();
     closeDebugDrawer();
-    closeAttributionDrawer();
-    closeCategoryTrendsDrawer();
+    closeIntelDrawer();
   });
 
   for (const button of els.themeButtons) {
@@ -1109,8 +1126,76 @@ function closePublisherDrawer() {
   els.drawerMask.classList.add("hidden");
 }
 
-// 功能四：全网品类宏观趋势分析抽屉 (Category Trends & Market Feasibility)
-async function showCategoryTrendsDrawer() {
+async function showIntelDrawer(tabName = 'attr') {
+  const elDrawer = document.getElementById("intel-drawer");
+  if (!elDrawer) return;
+
+  const tabAttr = document.getElementById("intel-tab-attr");
+  const tabCat = document.getElementById("intel-tab-cat");
+  const panelAttr = document.getElementById("intel-panel-attr");
+  const panelCat = document.getElementById("intel-panel-cat");
+
+  if (tabName === 'cat') {
+    if (tabCat) tabCat.classList.add("active");
+    if (tabAttr) tabAttr.classList.remove("active");
+    if (panelCat) panelCat.classList.remove("hidden");
+    if (panelAttr) panelAttr.classList.add("hidden");
+    loadCategoryTrendsData();
+  } else {
+    if (tabAttr) tabAttr.classList.add("active");
+    if (tabCat) tabCat.classList.remove("active");
+    if (panelAttr) panelAttr.classList.remove("hidden");
+    if (panelCat) panelCat.classList.add("hidden");
+    loadAttributionData();
+  }
+
+  elDrawer.classList.add("open");
+  elDrawer.setAttribute("aria-hidden", "false");
+  els.drawerMask.classList.remove("hidden");
+}
+
+function closeIntelDrawer() {
+  const elDrawer = document.getElementById("intel-drawer");
+  if (elDrawer) {
+    elDrawer.classList.remove("open");
+    elDrawer.setAttribute("aria-hidden", "true");
+  }
+  els.drawerMask.classList.add("hidden");
+}
+
+async function loadAttributionData() {
+  setLoading(true);
+  try {
+    const url = `/api/summary?date=${encodeURIComponent(state.date)}&country=${encodeURIComponent(state.country)}&chart=${encodeURIComponent(state.chart)}&store=${encodeURIComponent(state.store)}` + filterParams();
+    const attr = await api(url);
+
+    const elSummary = document.getElementById("attribution-summary-drawer");
+    if (elSummary) {
+      elSummary.textContent = attr.summary || "暂无大盘归因信息";
+    }
+
+    const elFactors = document.getElementById("attribution-factors-list-drawer");
+    if (elFactors) {
+      elFactors.innerHTML = (attr.factors && attr.factors.length > 0)
+        ? attr.factors.map(f => `
+          <div class="factor-item">
+            <span class="factor-icon">${f.icon}</span>
+            <div>
+              <strong>${esc(f.name)}:</strong> ${esc(f.desc)}
+              <div style="font-size:10px; color:var(--text-3); margin-top:2px;">数据来源: ${esc(f.data_source || '商店API/商业平台')}</div>
+            </div>
+          </div>
+        `).join("")
+        : '<div class="no-data" style="font-size:11px; color:var(--text-3);">暂无异动因子</div>';
+    }
+  } catch (err) {
+    console.error("loadAttributionData error:", err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function loadCategoryTrendsData() {
   setLoading(true);
   try {
     const url = `/api/category-trends?date=${encodeURIComponent(state.date)}&store=${encodeURIComponent(state.store)}`;
@@ -1162,28 +1247,11 @@ async function showCategoryTrendsDrawer() {
         ? data.declining_categories.map(c => renderCategoryCard(c)).join("")
         : '<div class="no-data">暂无数据</div>';
     }
-
-    const elCategoryDrawer = document.getElementById("category-drawer");
-    if (elCategoryDrawer) {
-      elCategoryDrawer.classList.add("open");
-      elCategoryDrawer.setAttribute("aria-hidden", "false");
-      els.drawerMask.classList.remove("hidden");
-    }
   } catch (err) {
-    console.error("showCategoryTrendsDrawer error:", err);
-    alert("获取品类趋势数据失败: " + (err.message || err));
+    console.error("loadCategoryTrendsData error:", err);
   } finally {
     setLoading(false);
   }
-}
-
-function closeCategoryTrendsDrawer() {
-  const elCategoryDrawer = document.getElementById("category-drawer");
-  if (elCategoryDrawer) {
-    elCategoryDrawer.classList.remove("open");
-    elCategoryDrawer.setAttribute("aria-hidden", "true");
-  }
-  els.drawerMask.classList.add("hidden");
 }
 
 async function init() {

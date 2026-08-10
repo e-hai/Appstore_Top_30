@@ -15,11 +15,8 @@
         <div class="content-title-row">
           <strong class="content-title">榜单分析</strong>
           <div class="header-controls">
-            <button type="button" id="btn-attribution" class="debug-btn" style="color: var(--accent); border-color: var(--accent);" title="查看异动归因分析">
-              <span>💡 归因分析</span>
-            </button>
-            <button type="button" id="btn-category-trends" class="debug-btn" style="color: var(--accent-hover); border-color: var(--accent-hover);" title="查看品类宏观趋势与爆款/衰退品类分析">
-              <span>📊 品类趋势分析</span>
+            <button type="button" id="btn-intel-hub" class="btn-primary btn-sm" style="height:34px; padding:0 14px; font-size:12.5px; display:inline-flex; align-items:center; gap:6px;" title="打开智能归因与品类趋势研判中心">
+              <span>💡 智能分析大盘</span>
             </button>
             <button type="button" id="debug-btn" class="debug-btn" title="查看 API 原始 JSON 调试数据">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
@@ -136,43 +133,64 @@
     </div>
   </div>
 
-  <!-- 大盘异动归因分析抽屉 -->
-  <div id="attribution-drawer" class="drawer" aria-hidden="true">
-    <div class="drawer-head">
-      <div>
-        <div class="panel-title" id="attr-title">💡 当日大盘驱动因素归因分析</div>
-        <div class="panel-sub" id="attr-meta">今日大盘异动与趋势洞察</div>
+  <!-- 💡 智能归因与品类趋势研判统一抽屉 -->
+  <div id="intel-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head" style="flex-direction: column; align-items: stretch; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div class="panel-title" id="intel-drawer-title">💡 智能分析大盘</div>
+          <div class="panel-sub" id="intel-drawer-sub">每日应用异动归因与全网品类宏观趋势</div>
+        </div>
+        <button id="intel-close" class="icon-button" aria-label="关闭" title="关闭">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
-      <button id="attr-close" class="icon-button" aria-label="关闭" title="关闭">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
+
+      <!-- Segmented Tab Switcher inside Drawer -->
+      <div class="view-tabs" role="tablist">
+        <button type="button" class="tab-btn active" id="intel-tab-attr" data-intel-tab="attr">💡 每日应用归因分析</button>
+        <button type="button" class="tab-btn" id="intel-tab-cat" data-intel-tab="cat">📊 全网品类宏观趋势</button>
+      </div>
     </div>
+
     <div class="drawer-body">
-      <div id="attribution-summary-drawer" class="attribution-summary">-</div>
-      <div id="attribution-factors-list-drawer" class="attribution-factors-list" style="margin-top:16px;"></div>
+      <!-- 面板 1: 每日应用归因分析 -->
+      <div id="intel-panel-attr" class="intel-panel">
+        <div id="attribution-summary-drawer" class="attribution-summary" style="margin-bottom: 12px;">-</div>
+        <div id="attribution-factors-list-drawer" class="attribution-factors-list" style="margin-bottom: 16px;"></div>
 
-      <!-- 🚀 冲榜爆发 Top 3 -->
-      <div class="attr-section">
-        <div class="attr-section-title">🚀 今日冲榜爆发 Top 3</div>
-        <div id="attr-rising-list" class="attr-list"></div>
+        <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
+          <div class="attr-section-title">🚀 今日冲榜爆发 Top 3</div>
+          <div id="attr-rising-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">👑 最强留存霸榜 Top 3</div>
+          <div id="attr-stable-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">📉 流量回调下滑 Top 3</div>
+          <div id="attr-falling-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">🆕 今日新上榜 App</div>
+          <div id="attr-new-list" class="attr-list"></div>
+        </div>
       </div>
 
-      <!-- 👑 最强留存 Top 3 -->
-      <div class="attr-section">
-        <div class="attr-section-title">👑 最强留存霸榜 Top 3</div>
-        <div id="attr-stable-list" class="attr-list"></div>
-      </div>
+      <!-- 面板 2: 全网品类宏观趋势 -->
+      <div id="intel-panel-cat" class="intel-panel hidden">
+        <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
+          <div class="attr-section-title">🚀 最具飙升潜力品类 Top 3</div>
+          <div id="category-rising-list" class="attr-list"></div>
+        </div>
 
-      <!-- 📉 名次下滑 Top 3 -->
-      <div class="attr-section">
-        <div class="attr-section-title">📉 流量回调下滑 Top 3</div>
-        <div id="attr-falling-list" class="attr-list"></div>
-      </div>
-
-      <!-- 🆕 今日新上榜 App -->
-      <div class="attr-section">
-        <div class="attr-section-title">🆕 今日新上榜 App</div>
-        <div id="attr-new-list" class="attr-list"></div>
+        <div class="attr-section">
+          <div class="attr-section-title">📉 流量回调/衰退品类 Top 3</div>
+          <div id="category-declining-list" class="attr-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -190,32 +208,6 @@
     </div>
     <div class="drawer-body">
       <div id="pub-content" class="pub-content"></div>
-    </div>
-  </div>
-
-  <!-- 功能四：全网品类宏观趋势分析抽屉 -->
-  <div id="category-drawer" class="drawer" aria-hidden="true">
-    <div class="drawer-head">
-      <div>
-        <div class="panel-title">📊 全网品类宏观趋势分析</div>
-        <div class="panel-sub" id="category-drawer-sub">每日品类爆发 Top 3 与 流量回调 Top 3 智能推演</div>
-      </div>
-      <button id="category-close" class="icon-button" aria-label="关闭" title="关闭">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="drawer-body">
-      <!-- 🚀 最具飙升潜力品类 Top 3 -->
-      <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
-        <div class="attr-section-title">🚀 最具飙升潜力品类 Top 3</div>
-        <div id="category-rising-list" class="attr-list"></div>
-      </div>
-
-      <!-- 📉 流量回调/衰退品类 Top 3 -->
-      <div class="attr-section">
-        <div class="attr-section-title">📉 流量回调/衰退品类 Top 3</div>
-        <div id="category-declining-list" class="attr-list"></div>
-      </div>
     </div>
   </div>
 

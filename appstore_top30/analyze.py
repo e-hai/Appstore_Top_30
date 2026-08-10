@@ -405,99 +405,99 @@ def _infer_growth_driver(app_name: str, genre_name: str, rank_change: int | None
     version = emp.get("version", "最新")
 
     is_spiker = change_val >= 10
-    confidence = "94% (高置信)" if (emp.get("has_empirical") and is_spiker) else "88% (中高置信)" if emp.get("has_empirical") else "75% (估算)"
+    confidence = "高置信" if (emp.get("has_empirical") and is_spiker) else "中高置信" if emp.get("has_empirical") else "常规估算"
 
     if any(k in name_lower for k in ["parentsquare", "dojo", "canvas", "remind", "clever", "schoology"]):
-        tag = "🎓 季节/开学季归因"
+        tag = "🎓 8月开学季刚需"
         badge_cls = "new"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "刚需自然拉新 (开学流量爆发)",
-            "liveops": "2026 新学期家校同步活动",
+            "ua_sov": "开学刚需自然下载",
+            "liveops": "新学期家校通知与作业",
             "monetization": "免费"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】受 8 月北美新学期开学季刚需拉动，学校教务系统集中部署要求家校下载。结合官方于 {rel_date} 推出的 v{version} 适配更新，商店转化率 (CR) 估算提升 35%，驱动榜单暴涨！"
+        detail = f"【重点总结】8月北美学校集中开学，学校强制要求家长和学生下载该 App 接收通知与作业。配合 {rel_date} 推出的 v{version} 适配更新，带来集中暴涨。"
     elif any(k in name_lower for k in ["whatsapp", "threads", "instagram", "facebook", "tiktok", "capcut"]):
-        tag = "🚀 买量/SOV 广告爆发"
+        tag = "🚀 全网广告大促+新功能"
         badge_cls = "up"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "高买量放量 (SOV 占优)",
-            "liveops": "夏季社媒功能拉新促活",
+            "ua_sov": "各大社交平台广告推广",
+            "liveops": "新功能拉新大促",
             "monetization": "免费"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】App 近期于 {rel_date} 输出 v{version} 版本更新。搭配 Meta/TikTok 广告平台 SOV 投放份额快速上升，估算广告曝光 (Impressions) 增长 28%，驱动 72 小时内排名提升 {change_val:+} 名。"
+        detail = f"【重点总结】近期在各大平台加大广告投放宣传，结合 {rel_date} 推出的 v{version} 热门新功能更新，吸引大量新用户下载体验。"
     elif any(k in name_lower for k in ["authenticator", "teams", "microsoft", "google", "outlook"]):
-        tag = "📦 企业合规政策强制"
+        tag = "📦 企业安全要求强制"
         badge_cls = "first"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "企业 IT 强制部署流量",
-            "liveops": "合规双重验证 (MFA) 升级",
+            "ua_sov": "企业 IT 集中要求安装",
+            "liveops": "双重验证账号安全升级",
             "monetization": "免费/企业授权"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】微软/谷歌 8 月企业安全合规策略生效，要求员工集中安装 MFA 双重验证，配合 {rel_date} 推出的 v{version} 安全修补版本，引发 B 端集中下载爆发。"
+        detail = f"【重点总结】微软/谷歌近期更新企业安全规范，要求员工集中安装双重验证账号。配合 {rel_date} 安全修补版本，触发 B 端集中下载。"
     elif any(k in name_lower for k in ["vpn", "browser", "tor", "privacy", "safari", "chrome"]):
-        tag = "🇪🇺 政策/DMA合规选择"
+        tag = "🇪🇺 隐私与政策合规"
         badge_cls = "first"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "政策调整合规拉新",
-            "liveops": "欧盟 DMA 浏览器选择屏/隐私规范",
-            "monetization": "免费/高级订阅"
+            "ua_sov": "合规与隐私搜索拉新",
+            "liveops": "浏览器选择与隐私规范",
+            "monetization": "免费/高级版"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】受到 Apple/Google 8 月针对欧盟 DMA 法规及隐私规范（Privacy Manifest）合规政策强制调整，浏览器与隐私工具类 App 引发合规性下载热潮。"
+        detail = f"【重点总结】受平台最新隐私规范与浏览器政策调整驱动，工具与隐私类 App 引发了一轮集中合规下载热潮。"
     elif any(k in name_lower for k in ["shopping", "amazon", "temu", "shein", "walmart", "target"]):
-        tag = "🛍️ 节假日/大促活动"
+        tag = "🛍️ 假日与返校季大促"
         badge_cls = "up"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "假日大促广告放量",
-            "liveops": "夏季/返校季大促折扣",
-            "monetization": "应用内购物/折扣券"
+            "ua_sov": "大促广告宣传",
+            "liveops": "返校季限时折扣活动",
+            "monetization": "应用内折扣购物"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】受夏季/返校季假日消费大促拉动，电商巨头加大全网 Buy-Intent 广告投放，驱动应用商店转化率与下载排名迅速上扬。"
+        detail = f"【重点总结】暑期与返校季购物大促上线，电商巨头加大全网折扣宣传，吸引大量购物用户下载领券。"
     elif any(k in name_lower for k in ["chatgpt", "claude", "copilot"]):
-        tag = "🤖 AI 大模型升级促活"
+        tag = "🤖 AI 新功能上线促活"
         badge_cls = "first"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "口碑自传播 + AI 广告促活",
-            "liveops": "Plus 订阅与模型功能大更新",
-            "monetization": "内购订阅包 (In-App Purchase)"
+            "ua_sov": "科技媒体报道与口碑传播",
+            "liveops": "新模型与应用内订阅活动",
+            "monetization": "会员内购订阅"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】生成式 AI 大模型在 {rel_date} 推出的 v{version} 中带来了最新能力提升，结合应用内订阅促销，用户 7 天留存率维持极强基底（波动率接近 0.00）。"
+        detail = f"【重点总结】官方于 {rel_date} 发布 v{version} 最新能力更新，配合科技媒体广泛报道与应用内订阅活动，带动排名提升并保持极高留存。"
     elif "game" in name_lower or "games" in genre_lower:
         if change_val < 0:
-            tag = "📉 买量期满自然回调"
+            tag = "📉 大促结束自然回调"
             badge_cls = "down"
             pillars = {
                 "aso_version": f"v{version} ({rel_date})",
-                "ua_sov": "买量预算阶段性收紧",
-                "liveops": "首发宣发热度回落",
-                "monetization": "道具内购"
+                "ua_sov": "宣发预算阶段性收紧",
+                "liveops": "首发活动热度回落",
+                "monetization": "游戏内购"
             }
-            detail = f"【Sensor Tower / Data.ai 商业模型推演】游戏首发大促买量预算期满收紧，AppLovin/Unity 渠道 SOV 投放占比自然回落，排名出现阶段性回调。"
+            detail = f"【重点总结】游戏首发或大促宣发期满，广告宣传预算收紧，名次出现正常的阶段性回调。"
         else:
-            tag = "🎉 游戏联名/买量爆推"
+            tag = "🎉 游戏新赛季/活动大促"
             badge_cls = "up"
             pillars = {
                 "aso_version": f"v{version} ({rel_date})",
-                "ua_sov": "AppLovin/Unity 高买量",
-                "liveops": "限时赛季/联名版本",
-                "monetization": "道具内购包打折"
+                "ua_sov": "视频广告高频宣传",
+                "liveops": "新赛季与限时联名活动",
+                "monetization": "道具打折促销"
             }
-            detail = f"【Sensor Tower / Data.ai 商业模型推演】游戏于 {rel_date} 推出 v{version} 赛季版本更新，配合 AppLovin 与 Unity 平台投放高转化视频素材，冲榜拉新效果显著。"
+            detail = f"【重点总结】游戏于 {rel_date} 上线 v{version} 新赛季活动，结合高吸引力视频广告投放，冲榜拉新效果显著。"
     else:
-        tag = "📦 商店版本功能迭代"
+        tag = "📦 版本常规更新"
         badge_cls = "same"
         pillars = {
             "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "常规渠道投放",
-            "liveops": "日常版本维护",
+            "ua_sov": "日常渠道宣传",
+            "liveops": "日常功能维护",
             "monetization": "免费/内购"
         }
-        detail = f"【Sensor Tower / Data.ai 商业模型推演】App 于 {rel_date} 发布 v{version} 版本更新，优化系统兼容性与商店转化率，支撑榜单稳定表现。"
+        detail = f"【重点总结】App 于 {rel_date} 发布 v{version} 版本更新，优化了性能与使用体验，维持榜单平稳表现。"
 
     return {
         "tag": tag,

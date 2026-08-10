@@ -484,10 +484,10 @@ function renderQuantSummary() {
     if (!p) return '';
     return `
       <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:4px; font-size:9.5px; background:var(--surface-2); padding:6px 8px; border-radius:4px; border:1px solid var(--border); margin-top:2px;">
-        <div>📦 <strong>ASO版本:</strong> ${esc(p.aso_version || '-')}</div>
-        <div>🎯 <strong>买量SOV:</strong> ${esc(p.ua_sov || '-')}</div>
-        <div>🎉 <strong>LiveOps:</strong> ${esc(p.liveops || '-')}</div>
-        <div>💰 <strong>商业化:</strong> ${esc(p.monetization || '-')}</div>
+        <div>📦 <strong>版本更新:</strong> ${esc(p.aso_version || '-')}</div>
+        <div>🎯 <strong>广告宣传:</strong> ${esc(p.ua_sov || '-')}</div>
+        <div>🎉 <strong>运营活动:</strong> ${esc(p.liveops || '-')}</div>
+        <div>💰 <strong>价格收费:</strong> ${esc(p.monetization || '-')}</div>
       </div>`;
   };
 
@@ -496,7 +496,7 @@ function renderQuantSummary() {
     if (!a.commercial_reports || !a.commercial_reports.length) return '';
     return `
       <div style="font-size:10px; background:var(--surface); border:1px dashed var(--border); padding:6px 8px; border-radius:4px; margin-top:4px; line-height:1.45;">
-        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">🏛️ Sensor Tower / Data.ai 商业平台公开分析报告:</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">📰 全网新闻与商业平台报道:</div>
         ${a.commercial_reports.map(r => `
           <div style="margin-bottom:4px;">
             <a href="${esc(r.url)}" target="_blank" rel="noopener" style="color:var(--accent-hover); font-weight:600; text-decoration:underline;">[${esc(r.platform)}] ${esc(r.title)} ↗</a>

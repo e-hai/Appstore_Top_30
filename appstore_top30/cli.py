@@ -61,6 +61,7 @@ def build_parser() -> argparse.ArgumentParser:
     dash.add_argument("--port", type=int, default=8000, help="Bind port (default 8000)")
     dash.add_argument("--no-open", action="store_true", help="Do not open the browser automatically")
 
+    sub.add_parser("fetch-drivers", help="Fetch and persist empirical version & driver metadata to local database")
     sub.add_parser("init", help="Initialize the database")
     return parser
 
@@ -143,6 +144,14 @@ def main(argv: list[str] | None = None) -> int:
             LOGGER.warning("%s google play feed failures: %s", len(stats["feeds_failed"]), stats["feeds_failed"][:5])
         return 0
 
+    if args.command == "fetch-drivers":
+        from . import analyze
+        db.init_db(args.db)
+        with db.closing(db.connect(args.db)) as conn:
+            count = analyze.sync_all_app_metadata(conn)
+            LOGGER.info("synced empirical driver metadata for %d apps to %s", count, args.db)
+        return 0
+
     if args.command == "run":
         _validate(args.regions, args.charts)
         stats = scraper.fetch_day(
@@ -155,6 +164,16 @@ def main(argv: list[str] | None = None) -> int:
         )
         if stats.get("skipped"):
             LOGGER.info("run skipped fetch for date %s: %s", args.date, stats.get("reason"))
+
+        # Auto sync driver metadata to local DB
+        try:
+            from . import analyze
+            with db.closing(db.connect(args.db)) as conn:
+                synced_cnt = analyze.sync_all_app_metadata(conn)
+                LOGGER.info("auto synced driver metadata for %d apps", synced_cnt)
+        except Exception as exc:
+            LOGGER.warning("failed to auto-sync driver metadata: %s", exc)
+
         html_path = report.generate_report(args.date, args.db, args.reports_dir)
         LOGGER.info(
             "run complete: %s entries, %s snapshots, report at %s",

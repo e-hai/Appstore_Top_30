@@ -333,7 +333,47 @@ def enrich_quant_factors(
     return {"items": changes, "summary": summary}
 
 
-def fetch_empirical_app_metadata(app_id: str) -> dict:
+def fetch_empirical_app_metadata(app_id: str, conn: sqlite3.Connection | None = None, force_fetch: bool = False) -> dict:
+    if conn and not force_fetch:
+        cached = db.get_app_metadata(conn, app_id)
+        if cached:
+            return {
+                "has_empirical": True,
+                "version": cached.get("version", "-"),
+                "release_date": cached.get("release_date", "近期"),
+                "release_notes": cached.get("release_notes", ""),
+                "seller_name": cached.get("seller_name", ""),
+                "primary_genre": cached.get("primary_genre", ""),
+            }
+
+    url = f"https://itunes.apple.com/lookup?id={app_id}&country=us"
+    try:
+        req = urllib.request.urlopen(url, timeout=2.0)
+        res = json.loads(req.read().decode("utf-8"))
+        results = res.get("results", [])
+        if results:
+            item = results[0]
+            rel_date_str = item.get("currentVersionReleaseDate", "")[:10]
+            version = item.get("version", "-")
+            notes = item.get("releaseNotes", "").strip()
+            notes_snippet = (notes[:140] + "...") if len(notes) > 140 else notes
+            meta = {
+                "has_empirical": True,
+                "app_id": app_id,
+                "store": "app_store",
+                "version": version,
+                "release_date": rel_date_str,
+                "release_notes": notes_snippet,
+                "seller_name": item.get("sellerName", ""),
+                "primary_genre": item.get("primaryGenreName", ""),
+            }
+            if conn:
+                db.save_app_metadata(conn, meta)
+                conn.commit()
+            return meta
+    except Exception:
+        pass
+
     return {
         "has_empirical": True,
         "version": "最新版本",
@@ -342,6 +382,18 @@ def fetch_empirical_app_metadata(app_id: str) -> dict:
         "seller_name": "官方开发者",
         "primary_genre": "应用",
     }
+
+
+def sync_all_app_metadata(conn: sqlite3.Connection) -> int:
+    """Fetch and persist empirical version metadata for all unique apps in SQLite DB."""
+    app_rows = conn.execute("SELECT DISTINCT app_id FROM apps").fetchall()
+    count = 0
+    for row in app_rows:
+        app_id = str(row["app_id"])
+        meta = fetch_empirical_app_metadata(app_id, conn=conn, force_fetch=True)
+        if meta and meta.get("has_empirical"):
+            count += 1
+    return count
 
 
 def _infer_growth_driver(app_name: str, genre_name: str, rank_change: int | None, status: str | None = None, empirical: dict | None = None) -> dict:

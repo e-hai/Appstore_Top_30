@@ -81,7 +81,57 @@ CREATE TABLE IF NOT EXISTS play_rankings (
 
 CREATE INDEX IF NOT EXISTS idx_play_rankings_snapshot ON play_rankings(snapshot_id);
 CREATE INDEX IF NOT EXISTS idx_play_rankings_app ON play_rankings(package_name);
+
+CREATE TABLE IF NOT EXISTS app_metadata (
+    app_id TEXT PRIMARY KEY,
+    store TEXT NOT NULL,
+    version TEXT,
+    release_date TEXT,
+    release_notes TEXT,
+    seller_name TEXT,
+    primary_genre TEXT,
+    updated_at TEXT NOT NULL
+);
 """
+
+
+def save_app_metadata(conn: sqlite3.Connection, meta: dict) -> None:
+    """Save or update empirical app metadata to local database."""
+    from datetime import datetime, timezone
+    now_str = datetime.now(timezone.utc).isoformat()
+    conn.execute(
+        """
+        INSERT INTO app_metadata (app_id, store, version, release_date, release_notes, seller_name, primary_genre, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(app_id) DO UPDATE SET
+            version = excluded.version,
+            release_date = excluded.release_date,
+            release_notes = excluded.release_notes,
+            seller_name = excluded.seller_name,
+            primary_genre = excluded.primary_genre,
+            updated_at = excluded.updated_at
+        """,
+        (
+            str(meta.get("app_id", "")),
+            meta.get("store", "app_store"),
+            meta.get("version", ""),
+            meta.get("release_date", ""),
+            meta.get("release_notes", ""),
+            meta.get("seller_name", ""),
+            meta.get("primary_genre", ""),
+            now_str,
+        ),
+    )
+
+
+def get_app_metadata(conn: sqlite3.Connection, app_id: str) -> dict | None:
+    """Retrieve app metadata from local database."""
+    row = conn.execute(
+        "SELECT * FROM app_metadata WHERE app_id = ?", (str(app_id),)
+    ).fetchone()
+    if row:
+        return dict(row)
+    return None
 
 
 def connect(db_path: Path) -> sqlite3.Connection:

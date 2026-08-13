@@ -272,24 +272,37 @@ function bindEvents() {
   // 抽屉内 Tab 切页
   const tabAttr = document.getElementById("intel-tab-attr");
   const tabCat = document.getElementById("intel-tab-cat");
+  const tabGiants = document.getElementById("intel-tab-giants");
   const panelAttr = document.getElementById("intel-panel-attr");
   const panelCat = document.getElementById("intel-panel-cat");
+  const panelGiants = document.getElementById("intel-panel-giants");
 
-  if (tabAttr && tabCat && panelAttr && panelCat) {
-    tabAttr.addEventListener("click", () => {
-      tabAttr.classList.add("active");
-      tabCat.classList.remove("active");
-      panelAttr.classList.remove("hidden");
-      panelCat.classList.add("hidden");
+  const switchIntelTab = (target) => {
+    if (tabAttr) tabAttr.classList.toggle("active", target === 'attr');
+    if (tabCat) tabCat.classList.toggle("active", target === 'cat');
+    if (tabGiants) tabGiants.classList.toggle("active", target === 'giants');
+
+    if (panelAttr) panelAttr.classList.toggle("hidden", target !== 'attr');
+    if (panelCat) panelCat.classList.toggle("hidden", target !== 'cat');
+    if (panelGiants) panelGiants.classList.toggle("hidden", target !== 'giants');
+
+    if (target === 'attr') loadAttributionData();
+    if (target === 'cat') loadCategoryTrendsData();
+    if (target === 'giants') loadCasualGiantsData();
+  };
+
+  if (tabAttr) tabAttr.addEventListener("click", () => switchIntelTab('attr'));
+  if (tabCat) tabCat.addEventListener("click", () => switchIntelTab('cat'));
+  if (tabGiants) tabGiants.addEventListener("click", () => switchIntelTab('giants'));
+
+  // 厂商区域切页按钮
+  document.querySelectorAll(".giant-region-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".giant-region-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      loadCasualGiantsData(btn.dataset.region || 'all');
     });
-    tabCat.addEventListener("click", () => {
-      tabCat.classList.add("active");
-      tabAttr.classList.remove("active");
-      panelCat.classList.remove("hidden");
-      panelAttr.classList.add("hidden");
-      loadCategoryTrendsData();
-    });
-  }
+  });
 
   els.pubClose.addEventListener("click", closePublisherDrawer);
   els.drawerMask.addEventListener("click", () => {
@@ -1132,22 +1145,22 @@ async function showIntelDrawer(tabName = 'attr') {
 
   const tabAttr = document.getElementById("intel-tab-attr");
   const tabCat = document.getElementById("intel-tab-cat");
+  const tabGiants = document.getElementById("intel-tab-giants");
   const panelAttr = document.getElementById("intel-panel-attr");
   const panelCat = document.getElementById("intel-panel-cat");
+  const panelGiants = document.getElementById("intel-panel-giants");
 
-  if (tabName === 'cat') {
-    if (tabCat) tabCat.classList.add("active");
-    if (tabAttr) tabAttr.classList.remove("active");
-    if (panelCat) panelCat.classList.remove("hidden");
-    if (panelAttr) panelAttr.classList.add("hidden");
-    loadCategoryTrendsData();
-  } else {
-    if (tabAttr) tabAttr.classList.add("active");
-    if (tabCat) tabCat.classList.remove("active");
-    if (panelAttr) panelAttr.classList.remove("hidden");
-    if (panelCat) panelCat.classList.add("hidden");
-    loadAttributionData();
-  }
+  if (tabAttr) tabAttr.classList.toggle("active", tabName === 'attr');
+  if (tabCat) tabCat.classList.toggle("active", tabName === 'cat');
+  if (tabGiants) tabGiants.classList.toggle("active", tabName === 'giants');
+
+  if (panelAttr) panelAttr.classList.toggle("hidden", tabName !== 'attr');
+  if (panelCat) panelCat.classList.toggle("hidden", tabName !== 'cat');
+  if (panelGiants) panelGiants.classList.toggle("hidden", tabName !== 'giants');
+
+  if (tabName === 'cat') loadCategoryTrendsData();
+  else if (tabName === 'giants') loadCasualGiantsData();
+  else loadAttributionData();
 
   elDrawer.classList.add("open");
   elDrawer.setAttribute("aria-hidden", "false");
@@ -1161,6 +1174,73 @@ function closeIntelDrawer() {
     elDrawer.setAttribute("aria-hidden", "true");
   }
   els.drawerMask.classList.add("hidden");
+}
+
+async function loadCasualGiantsData(region = 'all') {
+  setLoading(true);
+  try {
+    const url = `/api/casual-giants?region=${encodeURIComponent(region)}`;
+    const res = await api(url);
+    const publishers = res.publishers || [];
+
+    const elSub = document.getElementById("intel-drawer-sub");
+    if (elSub) {
+      elSub.textContent = `🎮 20大休闲巨头动态矩阵 (已追踪 ${res.total} 家核心厂商)`;
+    }
+
+    const renderGameItem = (g, badgeCls, badgeText) => `
+      <div class="giant-game-item">
+        <div class="giant-game-head">
+          <span class="giant-game-name">${g.icon || '🎮'} ${esc(g.name)}</span>
+          <span class="${badgeCls}">${esc(g.status || badgeText)}</span>
+        </div>
+        <div style="font-size:10px; color:var(--text-2); margin-top:2px;">
+          ${g.release_date ? `发布时间: <code>${esc(g.release_date)}</code> · ` : g.expected_date ? `预计上线: <code>${esc(g.expected_date)}</code> · ` : ''}
+          ${esc(g.desc || '')}
+        </div>
+      </div>`;
+
+    const renderPubCard = (p) => `
+      <div class="giant-pub-card">
+        <div class="giant-pub-header">
+          <div>
+            <span class="giant-pub-name">${esc(p.name)}</span>
+            <span style="font-size:11px; color:var(--text-3); margin-left:6px;">${esc(p.country)}</span>
+          </div>
+          <span class="giant-pub-tag">${esc(p.category)}</span>
+        </div>
+        <div class="giant-pub-desc">${esc(p.desc)}</div>
+
+        <!-- 🟢 已发布经典爆款 -->
+        <div class="giant-game-group">
+          <div class="giant-game-title">🟢 已发布爆款游戏 (${p.published_games?.length || 0})</div>
+          ${(p.published_games || []).map(g => renderGameItem(g, 'game-badge-published', '已发布')).join('')}
+        </div>
+
+        <!-- 🚀 近期新发布/热播中 -->
+        <div class="giant-game-group">
+          <div class="giant-game-title">🚀 近期新发布游戏 (${p.new_games?.length || 0})</div>
+          ${(p.new_games || []).map(g => renderGameItem(g, 'game-badge-new', '新发布')).join('')}
+        </div>
+
+        <!-- ⏳ 准备发布 / 预预约 / 软发射中 -->
+        <div class="giant-game-group">
+          <div class="giant-game-title">⏳ 准备发布 / 预预约中 (${p.upcoming_games?.length || 0})</div>
+          ${(p.upcoming_games || []).map(g => renderGameItem(g, 'game-badge-upcoming', '准备发布')).join('')}
+        </div>
+      </div>`;
+
+    const elList = document.getElementById("casual-giants-list");
+    if (elList) {
+      elList.innerHTML = publishers.length
+        ? publishers.map(renderPubCard).join("")
+        : '<div class="no-data">暂无厂商数据</div>';
+    }
+  } catch (err) {
+    console.error("loadCasualGiantsData error:", err);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function loadAttributionData() {

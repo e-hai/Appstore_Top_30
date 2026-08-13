@@ -154,10 +154,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     self._param(query, "country") or "us",
                     self._param(query, "store") or "app_store",
                 )
+            elif path == "/api/casual-giants":
+                self._api_casual_giants(self._param(query, "region"))
             else:
                 self._send_json({"error": "unknown api"}, status=404)
         finally:
             conn.close()
+
+    def _api_casual_giants(self, region: str | None = None) -> None:
+        from . import publisher_tracker
+        data = publisher_tracker.get_publisher_portfolio(region=region)
+        self._send_json({"total": len(data), "publishers": data})
 
     def _api_category_trends(self, conn: sqlite3.Connection, date: str | None, country: str = "us", store: str = "app_store") -> None:
         from . import category_intel

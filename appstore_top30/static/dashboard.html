@@ -150,6 +150,7 @@
       <div class="view-tabs" role="tablist">
         <button type="button" class="tab-btn active" id="intel-tab-attr" data-intel-tab="attr">💡 每日应用归因分析</button>
         <button type="button" class="tab-btn" id="intel-tab-cat" data-intel-tab="cat">📊 全网品类宏观趋势</button>
+        <button type="button" class="tab-btn" id="intel-tab-giants" data-intel-tab="giants">🎮 20大休闲巨头动态</button>
       </div>
     </div>
 
@@ -191,6 +192,20 @@
           <div class="attr-section-title">📉 流量回调/衰退品类 Top 3</div>
           <div id="category-declining-list" class="attr-list"></div>
         </div>
+      </div>
+
+      <!-- 面板 3: 20大休闲游戏厂商动态矩阵 -->
+      <div id="intel-panel-giants" class="intel-panel hidden">
+        <!-- 厂商区域切页 -->
+        <div class="view-tabs" role="tablist" style="margin-bottom: 12px; font-size: 11px;">
+          <button type="button" class="tab-btn active giant-region-btn" data-region="all">全域 (20)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="turkey">🇹🇷 土耳其 (4)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="china">🇨🇳 中国 (5)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="western">🇺🇸🇪🇺 欧美 (8)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="asia">日韩/东南亚 (3)</button>
+        </div>
+
+        <div id="casual-giants-list" class="attr-list"></div>
       </div>
     </div>
   </div>

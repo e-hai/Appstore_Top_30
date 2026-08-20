@@ -50,35 +50,35 @@
         "app_store": {
           "countries": 39,
           "snapshots": 5382,
-          "entries": 143392
+          "entries": 143391
         },
         "play": {
           "countries": 39,
-          "snapshots": 6062,
-          "entries": 164452
+          "snapshots": 6019,
+          "entries": 161852
         }
       },
       "countries": 39,
-      "snapshots": 11444,
-      "entries": 307844
+      "snapshots": 11401,
+      "entries": 305243
     },
     {
       "date": "2026-08-08",
       "stores": {
         "app_store": {
           "countries": 39,
-          "snapshots": 5382,
-          "entries": 143390
+          "snapshots": 5268,
+          "entries": 140333
         },
         "play": {
           "countries": 39,
-          "snapshots": 6072,
-          "entries": 161591
+          "snapshots": 6066,
+          "entries": 165006
         }
       },
       "countries": 39,
-      "snapshots": 11454,
-      "entries": 304981
+      "snapshots": 11334,
+      "entries": 305339
     },
     {
       "date": "2026-08-09",
@@ -86,17 +86,17 @@
         "app_store": {
           "countries": 39,
           "snapshots": 5382,
-          "entries": 143392
+          "entries": 143389
         },
         "play": {
           "countries": 39,
-          "snapshots": 6062,
-          "entries": 164452
+          "snapshots": 6063,
+          "entries": 165022
         }
       },
       "countries": 39,
-      "snapshots": 11444,
-      "entries": 307844
+      "snapshots": 11445,
+      "entries": 308411
     },
     {
       "date": "2026-08-10",
@@ -108,13 +108,13 @@
         },
         "play": {
           "countries": 39,
-          "snapshots": 6073,
-          "entries": 161594
+          "snapshots": 6020,
+          "entries": 163835
         }
       },
       "countries": 39,
-      "snapshots": 11455,
-      "entries": 304984
+      "snapshots": 11402,
+      "entries": 307225
     },
     {
       "date": "2026-08-11",
@@ -123,11 +123,16 @@
           "countries": 39,
           "snapshots": 5382,
           "entries": 143392
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6070,
+          "entries": 165432
         }
       },
       "countries": 39,
-      "snapshots": 5382,
-      "entries": 143392
+      "snapshots": 11452,
+      "entries": 308824
     },
     {
       "date": "2026-08-12",
@@ -136,11 +141,16 @@
           "countries": 39,
           "snapshots": 5382,
           "entries": 143390
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5999,
+          "entries": 160557
         }
       },
       "countries": 39,
-      "snapshots": 5382,
-      "entries": 143390
+      "snapshots": 11381,
+      "entries": 303947
     },
     {
       "date": "2026-08-13",
@@ -149,11 +159,88 @@
           "countries": 39,
           "snapshots": 5382,
           "entries": 143395
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5959,
+          "entries": 159694
         }
       },
       "countries": 39,
-      "snapshots": 5382,
-      "entries": 143395
+      "snapshots": 11341,
+      "entries": 303089
+    },
+    {
+      "date": "2026-08-14",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143396
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5945,
+          "entries": 159598
+        }
+      },
+      "countries": 39,
+      "snapshots": 11327,
+      "entries": 302994
+    },
+    {
+      "date": "2026-08-15",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143396
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6034,
+          "entries": 164275
+        }
+      },
+      "countries": 39,
+      "snapshots": 11416,
+      "entries": 307671
+    },
+    {
+      "date": "2026-08-16",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143396
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6030,
+          "entries": 163916
+        }
+      },
+      "countries": 39,
+      "snapshots": 11412,
+      "entries": 307312
+    },
+    {
+      "date": "2026-08-17",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5268,
+          "entries": 140346
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5952,
+          "entries": 159602
+        }
+      },
+      "countries": 39,
+      "snapshots": 11220,
+      "entries": 299948
     },
     {
       "date": "2026-08-18",
@@ -162,11 +249,47 @@
           "countries": 39,
           "snapshots": 5382,
           "entries": 143400
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6053,
+          "entries": 163969
         }
       },
       "countries": 39,
-      "snapshots": 5382,
-      "entries": 143400
+      "snapshots": 11435,
+      "entries": 307369
+    },
+    {
+      "date": "2026-08-19",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143397
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5969,
+          "entries": 158660
+        }
+      },
+      "countries": 39,
+      "snapshots": 11351,
+      "entries": 302057
+    },
+    {
+      "date": "2026-08-20",
+      "stores": {
+        "play": {
+          "countries": 39,
+          "snapshots": 5968,
+          "entries": 158688
+        }
+      },
+      "countries": 39,
+      "snapshots": 5968,
+      "entries": 158688
     }
   ]
 }

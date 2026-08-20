@@ -270,8 +270,8 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> No
         dates_data = generate_dates_json(conn)
         (api_dir / "dates.json").write_text(json.dumps(dates_data, ensure_ascii=False, indent=2), encoding="utf-8")
         all_dates = [d["date"] for d in dates_data["dates"]]
-        recent_dates = all_dates[-dates_limit:] if len(all_dates) > dates_limit else all_dates
-        latest_date = all_dates[-1] if all_dates else "2026-08-18"
+        recent_dates = all_dates if (not dates_limit or dates_limit <= 0) else (all_dates[-dates_limit:] if len(all_dates) > dates_limit else all_dates)
+        latest_date = all_dates[-1] if all_dates else "2026-08-19"
 
         # 3. Export /api/casual_giants.json
         all_giants = publisher_tracker.get_publisher_portfolio(region="all")

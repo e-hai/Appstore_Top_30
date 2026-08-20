@@ -725,14 +725,30 @@ function renderTable() {
   els.tableHead.innerHTML =
     "<tr><th class='cb-th' title='勾选多款应用进行同屏对比'><span class='cb-th-label'>对比 (多选)</span></th><th>排名</th><th>应用</th><th>开发者</th><th>分类</th><th>价格</th><th>排名变动</th></tr>";
 
-  // 1. 根据搜索过滤
+  // 1. 根据品类与子分类过滤 (支持静态托管即时筛选)
+  let rows = state.rows;
+  if (state.subcategory) {
+    rows = rows.filter((r) => String(r.genre_id) === String(state.subcategory));
+  } else if (state.category === "games") {
+    rows = rows.filter((r) => {
+      const gid = String(r.genre_id || "");
+      return gid === "6014" || gid.startsWith("70") || gid === "GAME" || (r.genre_name && r.genre_name.includes("游戏"));
+    });
+  } else if (state.category === "apps") {
+    rows = rows.filter((r) => {
+      const gid = String(r.genre_id || "");
+      return gid !== "6014" && !gid.startsWith("70") && gid !== "GAME" && (!r.genre_name || !r.genre_name.includes("游戏"));
+    });
+  }
+
+  // 2. 根据搜索过滤
   const query = state.search;
-  let rows = state.rows.filter((row) => {
+  rows = rows.filter((row) => {
     if (!query) return true;
     return `${row.name} ${row.developer}`.toLowerCase().includes(query);
   });
 
-  // 2. 根据异动 Tab (Movers & Shakers) 过滤与排序
+  // 3. 根据异动 Tab (Movers & Shakers) 过滤与排序
   if (state.currentTab === "up") {
     rows = rows.filter((r) => r.status === "up" && r.rank_change > 0)
                .sort((a, b) => b.rank_change - a.rank_change);

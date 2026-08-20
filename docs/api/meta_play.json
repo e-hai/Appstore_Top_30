@@ -207,7 +207,220 @@
     "paid": "付费榜",
     "grossing": "畅销榜"
   },
-  "genres": [],
+  "genres": [
+    {
+      "id": "PERSONALIZATION",
+      "name": "个性化"
+    },
+    {
+      "id": "GAME_CASUAL",
+      "name": "休闲"
+    },
+    {
+      "id": "SPORTS",
+      "name": "体育"
+    },
+    {
+      "id": "HEALTH_AND_FITNESS",
+      "name": "健康与健身"
+    },
+    {
+      "id": "GAME_ADVENTURE",
+      "name": "冒险"
+    },
+    {
+      "id": "GAME_ACTION",
+      "name": "动作"
+    },
+    {
+      "id": "MEDICAL",
+      "name": "医疗"
+    },
+    {
+      "id": "GAME_CARD",
+      "name": "卡牌"
+    },
+    {
+      "id": "BUSINESS",
+      "name": "商务"
+    },
+    {
+      "id": "BOOKS_AND_REFERENCE",
+      "name": "图书与工具书"
+    },
+    {
+      "id": "LIBRARIES_AND_DEMO",
+      "name": "图书与演示"
+    },
+    {
+      "id": "MAPS_AND_NAVIGATION",
+      "name": "地图与导航"
+    },
+    {
+      "id": "WEATHER",
+      "name": "天气"
+    },
+    {
+      "id": "ENTERTAINMENT",
+      "name": "娱乐"
+    },
+    {
+      "id": "GAME_WORD",
+      "name": "字谜"
+    },
+    {
+      "id": "HOUSE_AND_HOME",
+      "name": "家居"
+    },
+    {
+      "id": "FAMILY",
+      "name": "家庭"
+    },
+    {
+      "id": "TOOLS",
+      "name": "工具"
+    },
+    {
+      "id": "all",
+      "name": "总榜"
+    },
+    {
+      "id": "PHOTOGRAPHY",
+      "name": "摄影"
+    },
+    {
+      "id": "PRODUCTIVITY",
+      "name": "效率"
+    },
+    {
+      "id": "EDUCATION",
+      "name": "教育"
+    },
+    {
+      "id": "NEWS_AND_MAGAZINES",
+      "name": "新闻与杂志"
+    },
+    {
+      "id": "TRAVEL_AND_LOCAL",
+      "name": "旅游与本地"
+    },
+    {
+      "id": "GAME_BOARD",
+      "name": "桌面游戏"
+    },
+    {
+      "id": "GAME_SIMULATION",
+      "name": "模拟"
+    },
+    {
+      "id": "AUTO_AND_VEHICLES",
+      "name": "汽车与车辆"
+    },
+    {
+      "id": "EVENTS",
+      "name": "活动"
+    },
+    {
+      "id": "GAME",
+      "name": "游戏"
+    },
+    {
+      "id": "GAME_SPORTS",
+      "name": "游戏 · 体育"
+    },
+    {
+      "id": "GAME_EDUCATIONAL",
+      "name": "游戏 · 教育"
+    },
+    {
+      "id": "GAME_MUSIC",
+      "name": "游戏 · 音乐"
+    },
+    {
+      "id": "COMICS",
+      "name": "漫画"
+    },
+    {
+      "id": "LIFESTYLE",
+      "name": "生活方式"
+    },
+    {
+      "id": "SOCIAL",
+      "name": "社交"
+    },
+    {
+      "id": "GAME_RACING",
+      "name": "竞速"
+    },
+    {
+      "id": "GAME_STRATEGY",
+      "name": "策略"
+    },
+    {
+      "id": "DATING",
+      "name": "约会"
+    },
+    {
+      "id": "BEAUTY",
+      "name": "美容"
+    },
+    {
+      "id": "FOOD_AND_DRINK",
+      "name": "美食与饮品"
+    },
+    {
+      "id": "PARENTING",
+      "name": "育儿"
+    },
+    {
+      "id": "ART_AND_DESIGN",
+      "name": "艺术与设计"
+    },
+    {
+      "id": "GAME_ARCADE",
+      "name": "街机"
+    },
+    {
+      "id": "WATCH_FACE",
+      "name": "表盘"
+    },
+    {
+      "id": "VIDEO_PLAYERS",
+      "name": "视频播放器"
+    },
+    {
+      "id": "GAME_ROLE_PLAYING",
+      "name": "角色扮演"
+    },
+    {
+      "id": "GAME_PUZZLE",
+      "name": "解谜"
+    },
+    {
+      "id": "FINANCE",
+      "name": "财务"
+    },
+    {
+      "id": "SHOPPING",
+      "name": "购物"
+    },
+    {
+      "id": "GAME_CASINO",
+      "name": "赌场"
+    },
+    {
+      "id": "COMMUNICATION",
+      "name": "通讯"
+    },
+    {
+      "id": "GAME_TRIVIA",
+      "name": "问答"
+    },
+    {
+      "id": "MUSIC_AND_AUDIO",
+      "name": "音乐与音频"
+    }
+  ],
   "app_genres": [
     {
       "id": "ART_AND_DESIGN",

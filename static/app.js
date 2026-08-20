@@ -332,8 +332,10 @@ function bindEvents() {
 
   // 智能分析大盘统一入口绑定
   const btnIntelHub = document.getElementById("btn-intel-hub");
+  const btnAttribution = document.getElementById("btn-attribution");
   const intelClose = document.getElementById("intel-close");
   if (btnIntelHub) btnIntelHub.addEventListener("click", () => showIntelDrawer('attr'));
+  if (btnAttribution) btnAttribution.addEventListener("click", () => showIntelDrawer('attr'));
   if (intelClose) intelClose.addEventListener("click", closeIntelDrawer);
 
   // 抽屉内 Tab 切页
@@ -1327,35 +1329,7 @@ async function loadCasualGiantsData(region = 'all') {
 }
 
 async function loadAttributionData() {
-  setLoading(true);
-  try {
-    const url = `/api/summary?date=${encodeURIComponent(state.date)}&country=${encodeURIComponent(state.country)}&chart=${encodeURIComponent(state.chart)}&store=${encodeURIComponent(state.store)}` + filterParams();
-    const attr = await api(url);
-
-    const elSummary = document.getElementById("attribution-summary-drawer");
-    if (elSummary) {
-      elSummary.textContent = attr.summary || "暂无大盘归因信息";
-    }
-
-    const elFactors = document.getElementById("attribution-factors-list-drawer");
-    if (elFactors) {
-      elFactors.innerHTML = (attr.factors && attr.factors.length > 0)
-        ? attr.factors.map(f => `
-          <div class="factor-item">
-            <span class="factor-icon">${f.icon}</span>
-            <div>
-              <strong>${esc(f.name)}:</strong> ${esc(f.desc)}
-              <div style="font-size:10px; color:var(--text-3); margin-top:2px;">数据来源: ${esc(f.data_source || '商店API/商业平台')}</div>
-            </div>
-          </div>
-        `).join("")
-        : '<div class="no-data" style="font-size:11px; color:var(--text-3);">暂无异动因子</div>';
-    }
-  } catch (err) {
-    console.error("loadAttributionData error:", err);
-  } finally {
-    setLoading(false);
-  }
+  renderQuantSummary();
 }
 
 async function loadCategoryTrendsData() {

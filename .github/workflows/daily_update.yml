@@ -1,16 +1,30 @@
-name: Daily App Store & 20 Casual Giants Auto Update
+name: Daily App Store & 20 Casual Giants Auto Update and GitHub Pages Deploy
 
 on:
   schedule:
     # 每天 UTC 00:00 (北京时间上午 08:00) 自动触发
     - cron: '0 0 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'appstore_top30/**'
+      - 'requirements.txt'
+      - '.github/workflows/**'
   workflow_dispatch: # 支持在 GitHub Actions 界面一键手动触发
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  daily-fetch:
+  daily-fetch-and-build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,19 +42,31 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run daily data pipeline & 20 Casual Giants update
+      - name: Run daily data pipeline & generate static GitHub Pages
         run: |
           chmod +x ./run_daily.sh
           ./run_daily.sh
 
-      - name: Commit and push updated database & logs
+      - name: Commit and push updated docs and database
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/appstore_top30.db logs/daily.log || true
+          git add data/appstore_top30.db docs logs/daily.log || true
           if git diff --staged --quiet; then
-            echo "No changes to commit."
+            echo "No data changes to commit."
           else
-            git commit -m "chore(data): Auto-update daily rankings, 20 casual giants & app metadata [skip ci]"
+            git commit -m "chore(data): Auto-update daily rankings, 20 casual giants & static docs [skip ci]"
             git push origin main
           fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs/'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

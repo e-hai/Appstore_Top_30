@@ -63,6 +63,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("fetch-drivers", help="Fetch and persist empirical version & driver metadata to local database")
     sub.add_parser("init", help="Initialize the database")
+
+    export_pages = sub.add_parser("export-pages", help="Export static website & JSON API for GitHub Pages")
+    export_pages.add_argument("--out", type=Path, default=Path("docs"), help="Output directory (default: docs)")
+    export_pages.add_argument("--days", type=int, default=7, help="Number of recent days to export rankings for (default: 7)")
     return parser
 
 
@@ -150,6 +154,12 @@ def main(argv: list[str] | None = None) -> int:
         with db.closing(db.connect(args.db)) as conn:
             count = analyze.sync_all_app_metadata(conn)
             LOGGER.info("synced empirical driver metadata for %d apps to %s", count, args.db)
+        return 0
+
+    if args.command == "export-pages":
+        from . import export_static
+        export_static.export_static_site(args.db, args.out, dates_limit=args.days)
+        LOGGER.info("successfully exported static pages to %s", args.out)
         return 0
 
     if args.command == "run":

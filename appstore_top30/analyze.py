@@ -257,27 +257,28 @@ def enrich_quant_factors(
                 SELECT r.rank_no
                 FROM play_rankings r
                 JOIN play_snapshots s ON s.id = r.snapshot_id
-                WHERE LOWER(r.package_name) = LOWER(?)
-                  AND LOWER(s.country) = LOWER(?)
-                  AND LOWER(s.chart_type) = LOWER(?)
+                WHERE r.package_name = ?
+                  AND s.country = ?
+                  AND s.chart_type = ?
                   AND s.category_id = ?
                 ORDER BY s.date
                 """,
-                (aid, country, chart_type, target_genre),
+                (str(aid), country, chart_type, target_genre),
             ).fetchall()
         else:
+            app_id_val = int(aid) if str(aid).isdigit() else aid
             ranks = conn.execute(
                 """
                 SELECT r.rank_no
                 FROM rankings r
                 JOIN snapshots s ON s.id = r.snapshot_id
-                WHERE (CAST(r.app_id AS TEXT) = ? OR r.app_id = ?)
-                  AND LOWER(s.country) = LOWER(?)
-                  AND LOWER(s.chart_type) = LOWER(?)
+                WHERE r.app_id = ?
+                  AND s.country = ?
+                  AND s.chart_type = ?
                   AND s.genre_id = ?
                 ORDER BY s.date
                 """,
-                (aid, aid, country, chart_type, target_genre),
+                (app_id_val, country, chart_type, target_genre),
             ).fetchall()
 
         rank_list = [r["rank_no"] for r in ranks]
@@ -535,7 +536,7 @@ def generate_market_attribution(
     rising_sorted = sorted(rising, key=lambda x: x["rank_change"], reverse=True)[:3]
     rising_apps = []
     for r in rising_sorted:
-        emp = fetch_empirical_app_metadata(str(r["app_id"]))
+        emp = fetch_empirical_app_metadata(str(r["app_id"]), conn=conn)
         reports = commercial_intel.fetch_commercial_platform_reports(r["name"], r["genre_name"])
         rising_apps.append({
             "app_id": r["app_id"],
@@ -554,7 +555,7 @@ def generate_market_attribution(
     falling_sorted = sorted(falling, key=lambda x: x["rank_change"])[:3]
     falling_apps = []
     for f in falling_sorted:
-        emp = fetch_empirical_app_metadata(str(f["app_id"]))
+        emp = fetch_empirical_app_metadata(str(f["app_id"]), conn=conn)
         falling_apps.append({
             "app_id": f["app_id"],
             "name": f["name"],
@@ -571,7 +572,7 @@ def generate_market_attribution(
     stable_sorted = sorted(stable, key=lambda x: x["std_dev"])[:3]
     stable_apps = []
     for s in stable_sorted:
-        emp = fetch_empirical_app_metadata(str(s["app_id"]))
+        emp = fetch_empirical_app_metadata(str(s["app_id"]), conn=conn)
         stable_apps.append({
             "app_id": s["app_id"],
             "name": s["name"],
@@ -587,7 +588,7 @@ def generate_market_attribution(
     new_entries = [i for i in items if i.get("status") == "new"]
     new_apps = []
     for n in new_entries:
-        emp = fetch_empirical_app_metadata(str(n["app_id"]))
+        emp = fetch_empirical_app_metadata(str(n["app_id"]), conn=conn)
         new_apps.append({
             "app_id": n["app_id"],
             "name": n["name"],

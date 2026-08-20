@@ -1,0 +1,362 @@
+{
+  "total": 8,
+  "publishers": [
+    {
+      "id": "king",
+      "name": "King (英国 / 动视暴雪)",
+      "region": "western",
+      "country": "英国 🇬🇧",
+      "category": "三消宗师 (Match-3 Master)",
+      "desc": "消除类手游的宗师级企业，《Candy Crush Saga》（糖果传奇）至今仍是全球日活和营收的奇迹。",
+      "published_games": [
+        {
+          "name": "Candy Crush Saga",
+          "icon": "🍬",
+          "release_date": "2012-11",
+          "status": "日活与流水奇迹",
+          "desc": "全球累计收入突破 200 亿美元的三消宗师"
+        },
+        {
+          "name": "Candy Crush Soda Saga",
+          "icon": "🥤",
+          "release_date": "2014-10",
+          "status": "长青高收益",
+          "desc": "汽水与果冻机制经典衍生作品"
+        },
+        {
+          "name": "Farm Heroes Saga",
+          "icon": "🚜",
+          "release_date": "2013-03",
+          "status": "老牌常青树",
+          "desc": "农场作物连连看"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Candy Crush 3D Match",
+          "icon": "🍭",
+          "release_date": "2025-02",
+          "status": "全球推广中",
+          "desc": "糖果传奇官方 3D 物品消除衍生作"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Candy Crush Adventures",
+          "icon": "🗺️",
+          "expected_date": "2026 Q4",
+          "status": "英国/加拿大封闭测试",
+          "desc": "带外围剧情地图探险与公会做任务的新一代糖果传奇"
+        }
+      ]
+    },
+    {
+      "id": "playrix",
+      "name": "Playrix (爱尔兰)",
+      "region": "western",
+      "country": "爱尔兰 🇮🇪",
+      "category": "梦幻装扮鼻祖 (Scapes Series)",
+      "desc": "开创了“梦幻系列”（《Gardenscapes》、《Homescapes》），将三消与叙事装扮完美结合。",
+      "published_games": [
+        {
+          "name": "Gardenscapes (梦幻花园)",
+          "icon": "🌷",
+          "release_date": "2016-08",
+          "status": "叙事三消鼻祖",
+          "desc": "管家奥斯汀与花园修复剧情三消"
+        },
+        {
+          "name": "Homescapes (梦幻家园)",
+          "icon": "🏠",
+          "release_date": "2017-09",
+          "status": "全球顶级畅销",
+          "desc": "豪宅室内装修与大逃亡买量副玩法"
+        },
+        {
+          "name": "Township (梦想小镇)",
+          "icon": "🌾",
+          "release_date": "2013-10",
+          "status": "模拟经营霸主",
+          "desc": "农场小镇建造与消除副副本"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Mystery Scapes",
+          "icon": "🔍",
+          "release_date": "2024-11",
+          "status": "高增长黑马",
+          "desc": "神秘悬疑古堡寻物与三消装扮"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Gardenscapes Merge (暂定名)",
+          "icon": "🌺",
+          "expected_date": "2026 Q4",
+          "status": "内部测试",
+          "desc": "经典梦幻花园 IP 转向二合 (Merge-2) 棋盘合成"
+        }
+      ]
+    },
+    {
+      "id": "scopely",
+      "name": "Scopely (美国 / 萨特Savvy)",
+      "region": "western",
+      "country": "美国 🇺🇸",
+      "category": "强社交博弈与休闲新王",
+      "desc": "通过《Monopoly GO!》和《Yahtzee with Buddies》将强社交博弈融入轻度休闲，买量与商业化实力极强。",
+      "published_games": [
+        {
+          "name": "Monopoly GO!",
+          "icon": "🎲",
+          "release_date": "2023-04",
+          "status": "刷新历史增长纪录",
+          "desc": "上线一年打破全球游戏收入增速纪录，狂揽超 30 亿美金"
+        },
+        {
+          "name": "Yahtzee with Buddies",
+          "icon": "🎯",
+          "release_date": "2015-11",
+          "status": "长效高留存",
+          "desc": "经典掷骰子掷骰棋盘社交"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Bingo GO!",
+          "icon": "🎱",
+          "release_date": "2025-01",
+          "status": "欧美急速升榜",
+          "desc": "融入 Monopoly GO 社交拆家机制的全新宾果游戏"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Project Board Legends",
+          "icon": "♟️",
+          "expected_date": "2026 Q4",
+          "status": "预预约开测",
+          "desc": "大富翁 + 卡牌桌游强社交即时竞技"
+        }
+      ]
+    },
+    {
+      "id": "zynga",
+      "name": "Zynga (美国 / Take-Two)",
+      "region": "western",
+      "country": "美国 🇺🇸",
+      "category": "合并益智与农场巨头 (Peak/Gram母公司)",
+      "desc": "Peak Games 的母公司。除了 Peak 外，旗下还拥有 Gram Games、Rollic 等超休闲/合并益智工作室。",
+      "published_games": [
+        {
+          "name": "Merge Dragons!",
+          "icon": "🐉",
+          "release_date": "2017-06",
+          "status": "三合 (Merge-3) 鼻祖",
+          "desc": "Gram Games 打造的三合奇幻巨作"
+        },
+        {
+          "name": "Toon Blast (Peak Games)",
+          "icon": "🐻",
+          "release_date": "2017-03",
+          "status": "点消 (Collapse) 巨头",
+          "desc": "极简点消与卡通战队积分赛"
+        },
+        {
+          "name": "Toy Blast (Peak Games)",
+          "icon": "🧸",
+          "release_date": "2015-01",
+          "status": "经典老牌",
+          "desc": "玩具消除与闯关"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Merge Gardens (Re-launch)",
+          "icon": "🏡",
+          "release_date": "2024-09",
+          "status": "流水大幅飙升",
+          "desc": "结合三合与老宅重修的大改版重发"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "FarmVille Merge Tales",
+          "icon": "🌽",
+          "expected_date": "2026 Q4",
+          "status": "北美试软",
+          "desc": "FarmVille 农场 IP 融合二合合成与动物养成"
+        }
+      ]
+    },
+    {
+      "id": "applovin_lion",
+      "name": "AppLovin / Lion Studios",
+      "region": "western",
+      "country": "美国 🇺🇸",
+      "category": "买量算法与益智爆款厂",
+      "desc": "作为移动广告巨头，旗下的游戏工作室利用算法和数据，推出了大量益智买量爆款。",
+      "published_games": [
+        {
+          "name": "Save the Doge",
+          "icon": "🐶",
+          "release_date": "2022-07",
+          "status": "全网爆款副玩法",
+          "desc": "划线防蜜蜂咬狗头买量神作"
+        },
+        {
+          "name": "Match 3D Triple Puzzle",
+          "icon": "🧩",
+          "release_date": "2021-02",
+          "status": "多国下载前列",
+          "desc": "算法驱动的高 ROI 3D 物品消除"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Screw Jam 3D",
+          "icon": "🔩",
+          "release_date": "2024-12",
+          "status": "螺丝拧固爆款",
+          "desc": "拧螺丝彩色盒分类消除（全网爆火新子品类）"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Sort & Jam 3D",
+          "icon": "📦",
+          "expected_date": "2026 Q4",
+          "status": "买量投放测试",
+          "desc": "物理杂货整理 + 螺丝解密双重买量机制"
+        }
+      ]
+    },
+    {
+      "id": "rovio",
+      "name": "Rovio (芬兰 / 世嘉旗下)",
+      "region": "western",
+      "country": "芬兰 🇫🇮",
+      "category": "怒鸟IP与物理弹射",
+      "desc": "《愤怒的小鸟》母公司，虽以物理弹射起家，但近年推出了多款小鸟 IP 衍生三消与合并游戏。",
+      "published_games": [
+        {
+          "name": "Angry Birds Dream Blast",
+          "icon": "🐤",
+          "release_date": "2019-01",
+          "status": "泡泡物理消除巨作",
+          "desc": "物理气泡碰撞与泡泡消除"
+        },
+        {
+          "name": "Angry Birds 2",
+          "icon": "🏹",
+          "release_date": "2015-07",
+          "status": "经典弹射",
+          "desc": "经典愤怒的小鸟关卡弹射"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Angry Birds Match 3D",
+          "icon": "🐥",
+          "release_date": "2025-01",
+          "status": "新IP衍生试发",
+          "desc": "怒鸟角色 3D 收集与消消乐"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Angry Birds Island Merge",
+          "icon": "🏝️",
+          "expected_date": "2026 Q4",
+          "status": "芬兰/瑞典软发射",
+          "desc": "小鸟大作战 + 猪猪岛二合合成"
+        }
+      ]
+    },
+    {
+      "id": "wooga",
+      "name": "Wooga (德国 / Playtika旗下)",
+      "region": "western",
+      "country": "德国 🇩🇪",
+      "category": "剧情寻物益智第一 (Hidden Object)",
+      "desc": "全球剧情寻物益智（Hidden Object）第一，代表作《June's Journey》深受欧美高龄高付费女性喜爱。",
+      "published_games": [
+        {
+          "name": "June's Journey (寻物记)",
+          "icon": "🕵️",
+          "release_date": "2017-10",
+          "status": "寻物类全球 #1",
+          "desc": "20世纪20年代名媛复古探案与庄园装饰，高 ARPPU 极高粘性"
+        },
+        {
+          "name": "Pearl's Peril",
+          "icon": "💎",
+          "release_date": "2013-03",
+          "status": "经典老牌探案",
+          "desc": "复古寻物解谜与海岛设计"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Ghost Detective: Hidden Clues",
+          "icon": "👻",
+          "release_date": "2024-08",
+          "status": "好评稳定增长",
+          "desc": "超自然灵异侦探寻物"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "June's Estate Merge",
+          "icon": "🏰",
+          "expected_date": "2026 Q4",
+          "status": "欧洲预预约",
+          "desc": "June's Journey 顶级 IP 结合二合 (Merge-2) 棋盘复原"
+        }
+      ]
+    },
+    {
+      "id": "tactile_games",
+      "name": "Tactile Games (丹麦)",
+      "region": "western",
+      "country": "丹麦 🇩🇰",
+      "category": "高质感女性向三消 (Lily's Garden)",
+      "desc": "高质感女性向三消代表，代表作《Lily's Garden》，其广告剧情营销在业内被广泛模仿。",
+      "published_games": [
+        {
+          "name": "Lily's Garden",
+          "icon": "🌻",
+          "release_date": "2019-02",
+          "status": "营销剧情标杆",
+          "desc": "莉莉的花园修复与反转八卦剧情广告鼻祖"
+        },
+        {
+          "name": "Penny's Pursuit",
+          "icon": "🐕",
+          "release_date": "2021-05",
+          "status": "长青运营",
+          "desc": "探险环球求生与三消"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Makeover Match",
+          "icon": "💄",
+          "release_date": "2024-06",
+          "status": "高买量推广",
+          "desc": "时尚改造与剧情装扮消除"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Lily's Secret Manor",
+          "icon": "🔐",
+          "expected_date": "2026 Q4",
+          "status": "丹麦/荷兰封测",
+          "desc": "莉莉系列最新二合合成 (Merge-2) 与秘密庄园解谜"
+        }
+      ]
+    }
+  ]
+}

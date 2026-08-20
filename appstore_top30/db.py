@@ -81,6 +81,12 @@ CREATE TABLE IF NOT EXISTS play_rankings (
 
 CREATE INDEX IF NOT EXISTS idx_play_rankings_snapshot ON play_rankings(snapshot_id);
 CREATE INDEX IF NOT EXISTS idx_play_rankings_app ON play_rankings(package_name);
+CREATE INDEX IF NOT EXISTS idx_snapshots_lookup ON snapshots(date, country, chart_type, genre_id);
+CREATE INDEX IF NOT EXISTS idx_play_snapshots_lookup ON play_snapshots(date, country, chart_type, category_id);
+CREATE INDEX IF NOT EXISTS idx_snapshots_date_country ON snapshots(date, country, chart_type);
+CREATE INDEX IF NOT EXISTS idx_play_snapshots_date_country ON play_snapshots(date, country, chart_type);
+CREATE INDEX IF NOT EXISTS idx_rankings_app_lookup ON rankings(app_id, snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_play_rankings_app_lookup ON play_rankings(package_name, snapshot_id);
 
 CREATE TABLE IF NOT EXISTS app_metadata (
     app_id TEXT PRIMARY KEY,

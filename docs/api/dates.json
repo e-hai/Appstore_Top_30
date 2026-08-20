@@ -1,0 +1,172 @@
+{
+  "dates": [
+    {
+      "date": "2026-08-04",
+      "stores": {
+        "app_store": {
+          "countries": 11,
+          "snapshots": 1518,
+          "entries": 41770
+        }
+      },
+      "countries": 11,
+      "snapshots": 1518,
+      "entries": 41770
+    },
+    {
+      "date": "2026-08-05",
+      "stores": {
+        "app_store": {
+          "countries": 11,
+          "snapshots": 1518,
+          "entries": 41771
+        }
+      },
+      "countries": 11,
+      "snapshots": 1518,
+      "entries": 41771
+    },
+    {
+      "date": "2026-08-06",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143392
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6069,
+          "entries": 165120
+        }
+      },
+      "countries": 39,
+      "snapshots": 11451,
+      "entries": 308512
+    },
+    {
+      "date": "2026-08-07",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143392
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6062,
+          "entries": 164452
+        }
+      },
+      "countries": 39,
+      "snapshots": 11444,
+      "entries": 307844
+    },
+    {
+      "date": "2026-08-08",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143390
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6072,
+          "entries": 161591
+        }
+      },
+      "countries": 39,
+      "snapshots": 11454,
+      "entries": 304981
+    },
+    {
+      "date": "2026-08-09",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143392
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6062,
+          "entries": 164452
+        }
+      },
+      "countries": 39,
+      "snapshots": 11444,
+      "entries": 307844
+    },
+    {
+      "date": "2026-08-10",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143390
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 6073,
+          "entries": 161594
+        }
+      },
+      "countries": 39,
+      "snapshots": 11455,
+      "entries": 304984
+    },
+    {
+      "date": "2026-08-11",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143392
+        }
+      },
+      "countries": 39,
+      "snapshots": 5382,
+      "entries": 143392
+    },
+    {
+      "date": "2026-08-12",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143390
+        }
+      },
+      "countries": 39,
+      "snapshots": 5382,
+      "entries": 143390
+    },
+    {
+      "date": "2026-08-13",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143395
+        }
+      },
+      "countries": 39,
+      "snapshots": 5382,
+      "entries": 143395
+    },
+    {
+      "date": "2026-08-18",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143400
+        }
+      },
+      "countries": 39,
+      "snapshots": 5382,
+      "entries": 143400
+    }
+  ]
+}

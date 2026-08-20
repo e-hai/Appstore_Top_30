@@ -1,0 +1,166 @@
+{
+  "total": 4,
+  "publishers": [
+    {
+      "id": "dream_games",
+      "name": "Dream Games",
+      "region": "turkey",
+      "country": "土耳其 🇹🇷",
+      "category": "消除新王 (Match-3 King)",
+      "desc": "由 Peak 前员工创立，凭《Royal Match》超越《糖果传奇》，成为目前全球最吸金的三消新王。",
+      "published_games": [
+        {
+          "name": "Royal Match",
+          "icon": "🏰",
+          "release_date": "2021-02",
+          "status": "全球畅销榜 #1",
+          "desc": "全球最赚钱的三消游戏，月流水破 1 亿美元"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Royal Kingdom",
+          "icon": "👑",
+          "release_date": "2024-11",
+          "status": "爆款测试中",
+          "desc": "《Royal Match》续作，加入攻城防守与公会对抗 PVP 机制"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Project Royal Puzzle (暂定名)",
+          "icon": "🧩",
+          "expected_date": "2026 Q4",
+          "status": "软发射阶段",
+          "desc": "结合 3D 合成与社交城堡建构的新一代消除实验作品"
+        }
+      ]
+    },
+    {
+      "id": "loop_games",
+      "name": "Loop Games",
+      "region": "turkey",
+      "country": "土耳其 🇹🇷",
+      "category": "3D消除开拓者",
+      "desc": "主攻益智副玩法与超休闲解谜，代表作《Match 3D》开创了 3D 物品寻找消除的潮流。",
+      "published_games": [
+        {
+          "name": "Match 3D",
+          "icon": "📦",
+          "release_date": "2020-05",
+          "status": "经典爆款",
+          "desc": "开创 3D 杂物堆寻找三消的现象级作品"
+        },
+        {
+          "name": "Match Tile 3D",
+          "icon": "🔷",
+          "release_date": "2021-03",
+          "status": "长青运营",
+          "desc": "结合 3D 空间翻转与麻将方块消消乐"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Match Story 3D",
+          "icon": "📖",
+          "release_date": "2025-08",
+          "status": "稳步上升",
+          "desc": "引入剧情解谜与老宅修复外围的 3D 消除新作"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Merge Loop 3D",
+          "icon": "🔄",
+          "expected_date": "2026 Q4",
+          "status": "预预约",
+          "desc": "3D 拟真物品合成 + 空间摆放重度变现新品"
+        }
+      ]
+    },
+    {
+      "id": "good_job_games",
+      "name": "Good Job Games",
+      "region": "turkey",
+      "country": "土耳其 🇹🇷",
+      "category": "魔性物理益智",
+      "desc": "擅长将魔性物理机制与休闲益智结合，代表作《Color Fill 3D》、《Paper Fold》。",
+      "published_games": [
+        {
+          "name": "Color Fill 3D",
+          "icon": "🎨",
+          "release_date": "2019-03",
+          "status": "超 1 亿下载",
+          "desc": "魔性物理填色画线小游戏"
+        },
+        {
+          "name": "Paper Fold",
+          "icon": "📜",
+          "release_date": "2021-04",
+          "status": "全球下载榜前列",
+          "desc": "折纸艺术解谜休闲游戏"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Sort Match 3D",
+          "icon": "🗄️",
+          "release_date": "2025-06",
+          "status": "热播买量中",
+          "desc": "货柜整理与物理推叠消除新品"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Physics Puzzle Quest",
+          "icon": "⚙️",
+          "expected_date": "2026 Q4",
+          "status": "内部测试",
+          "desc": "结合物理引擎机制的混合休闲（Hybrid Casual）冒险"
+        }
+      ]
+    },
+    {
+      "id": "fugo_games",
+      "name": "Fugo Games",
+      "region": "turkey",
+      "country": "土耳其 🇹🇷",
+      "category": "文字益智巨头",
+      "desc": "文字益智类（Word Games）巨头，其推出的《Words of Wonders》长期横扫多国下载榜。",
+      "published_games": [
+        {
+          "name": "Words of Wonders: Crossword",
+          "icon": "🔤",
+          "release_date": "2018-04",
+          "status": "全球填字 #1",
+          "desc": "全球数亿玩家的自然地理人文填字巨作"
+        },
+        {
+          "name": "Words of Wonders: Guru",
+          "icon": "🎓",
+          "release_date": "2021-09",
+          "status": "长青收割",
+          "desc": "进阶版智力填字谜题"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Word Travel: Search Puzzle",
+          "icon": "✈️",
+          "release_date": "2025-04",
+          "status": "多国榜单 Top 10",
+          "desc": "结合旅行风景卡牌收集的文字消除"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Word Merge Trivia",
+          "icon": "💡",
+          "expected_date": "2026 Q4",
+          "status": "加拿大/澳大利亚试软",
+          "desc": "文字拼写 + 词条合成二合一创新变现框架"
+        }
+      ]
+    }
+  ]
+}

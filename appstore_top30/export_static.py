@@ -493,28 +493,37 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> No
             for region_key, spec in config.REGIONS.items():
                 for country_code, country_name in spec["countries"]:
                     for chart_type in config.CHART_TYPES.keys():
+                        # Collect all apps appearing across any genre in history for this country/chart
                         all_seen_app_ids = []
                         seen_id_set = set()
                         for d in reversed(recent_dates):
-                            day_rows = cached_days.get((d, store), {}).get((country_code, chart_type, "_overall"), [])
-                            for r in day_rows:
-                                aid = str(r["app_id"])
-                                if aid not in seen_id_set:
-                                    seen_id_set.add(aid)
-                                    all_seen_app_ids.append(aid)
+                            curr_day_dict = cached_days.get((d, store), {})
+                            for (c_c, c_t, g_id), rows in curr_day_dict.items():
+                                if c_c == country_code and c_t == chart_type:
+                                    for r in rows:
+                                        aid = str(r["app_id"])
+                                        if aid not in seen_id_set:
+                                            seen_id_set.add(aid)
+                                            all_seen_app_ids.append(aid)
 
                         trends = {}
-                        for app_id in all_seen_app_ids[:60]:
+                        for app_id in all_seen_app_ids[:100]:
                             points = []
                             for d in recent_dates:
-                                day_rows = cached_days.get((d, store), {}).get((country_code, chart_type, "_overall"), [])
-                                match = next((x for x in day_rows if str(x["app_id"]) == str(app_id)), None)
-                                if match:
+                                curr_day_dict = cached_days.get((d, store), {})
+                                matches = []
+                                for (c_c, c_t, g_id), rows in curr_day_dict.items():
+                                    if c_c == country_code and c_t == chart_type:
+                                        for x in rows:
+                                            if str(x["app_id"]) == str(app_id):
+                                                matches.append(x)
+                                if matches:
+                                    best_match = min(matches, key=lambda m: (0 if str(m.get("genre_id")) in ("36", "all") else 1, m["rank_no"]))
                                     points.append({
                                         "date": d,
-                                        "best_rank": match["rank_no"],
-                                        "genres": match.get("genre_name"),
-                                        "name": match.get("name"),
+                                        "best_rank": best_match["rank_no"],
+                                        "genres": best_match.get("genre_name"),
+                                        "name": best_match.get("name"),
                                     })
                             if points:
                                 trends[str(app_id)] = points

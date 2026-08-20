@@ -282,9 +282,9 @@
       "date": "2026-08-20",
       "stores": {
         "app_store": {
-          "countries": 1,
-          "snapshots": 138,
-          "entries": 3830
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143398
         },
         "play": {
           "countries": 39,
@@ -293,8 +293,8 @@
         }
       },
       "countries": 39,
-      "snapshots": 6106,
-      "entries": 162518
+      "snapshots": 11350,
+      "entries": 302086
     }
   ]
 }

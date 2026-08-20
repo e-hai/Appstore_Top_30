@@ -1,0 +1,131 @@
+{
+  "total": 3,
+  "publishers": [
+    {
+      "id": "line_corp",
+      "name": "LINE Corporation (日韩)",
+      "region": "asia",
+      "country": "日本 🇯🇵 / 韩国 🇰🇷",
+      "category": "IP泡泡龙与益智消除",
+      "desc": "凭借《LINE Puzzle TanTan》、《LINE Bubble 2》等，利用 LINE 家族极具亲和力的角色垄断亚洲泡泡龙与益智消除市场。",
+      "published_games": [
+        {
+          "name": "LINE Bubble 2",
+          "icon": "🐤",
+          "release_date": "2015-04",
+          "status": "亚洲泡泡龙 #1",
+          "desc": "LINE 布朗熊与可妮兔泡泡发射消除"
+        },
+        {
+          "name": "LINE POP2",
+          "icon": "🐻",
+          "release_date": "2014-10",
+          "status": "日本常青树",
+          "desc": "六角形三消方块匹配"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "LINE Chef & Merge",
+          "icon": "🍱",
+          "release_date": "2024-11",
+          "status": "日韩热门榜前列",
+          "desc": "美食烹饪结合 LINE 角色二合合成"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "LINE Friends Puzzle Town",
+          "icon": "🏡",
+          "expected_date": "2026 Q4",
+          "status": "日韩地区预预约中",
+          "desc": "LINE Friends 家族虚拟城镇建造与消除"
+        }
+      ]
+    },
+    {
+      "id": "amanotes_vng",
+      "name": "Amanotes / VNG Games (越南)",
+      "region": "asia",
+      "country": "越南 🇻🇳",
+      "category": "音乐益智与东南亚巨头",
+      "desc": "Amanotes 是全球休闲音乐益智（Magic Tiles 3）的超级大厂；VNG 则通过收购和自研在东南亚复制消除爆款。",
+      "published_games": [
+        {
+          "name": "Magic Tiles 3: Piano Game",
+          "icon": "🎹",
+          "release_date": "2017-02",
+          "status": "全球数亿下载",
+          "desc": "全球第一音乐节奏消除小游戏"
+        },
+        {
+          "name": "Tiles Hop: EDM Rush!",
+          "icon": "🎶",
+          "release_date": "2018-09",
+          "status": "高下载量",
+          "desc": "电音跳跃小球与音乐关卡"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Duet Cats: Cute Cat Music",
+          "icon": "🐱",
+          "release_date": "2023-08",
+          "status": "萌宠爆款",
+          "desc": "双猫合奏萌宠喂食音乐消除"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Magic Music Merge 3D",
+          "icon": "🎵",
+          "expected_date": "2026 Q4",
+          "status": "东南亚软发射",
+          "desc": "节奏音游结合 3D 物品合成休闲新品"
+        }
+      ]
+    },
+    {
+      "id": "devsisters",
+      "name": "Devsisters (韩国)",
+      "region": "asia",
+      "country": "韩国 🇰🇷",
+      "category": "姜饼人IP与高美学消除",
+      "desc": "凭借《Cookie Run》（跑跑姜饼人）IP，衍生出了多款高美学的魔女商店、姜饼人三消与益智建造游戏。",
+      "published_games": [
+        {
+          "name": "Cookie Run: Kingdom",
+          "icon": "🏰",
+          "release_date": "2021-01",
+          "status": "韩国国民级IP",
+          "desc": "姜饼人王国建造 + 冒险卡牌"
+        },
+        {
+          "name": "Cookie Run: Puzzle World",
+          "icon": "🍪",
+          "release_date": "2020-01",
+          "status": "经典消除",
+          "desc": "姜饼人果冻消除与城堡设计"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Cookie Run: Witch's Castle",
+          "icon": "🧹",
+          "release_date": "2024-03",
+          "status": "美学大作",
+          "desc": "魔女城堡逃脱点消 (Tap-to-Blast) 与探索"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Cookie Run: OvenMerge",
+          "icon": "🔥",
+          "expected_date": "2026 Q4",
+          "status": "韩国预预约开测",
+          "desc": "姜饼人烤箱烘焙二合 (Merge-2) 治愈系新品"
+        }
+      ]
+    }
+  ]
+}

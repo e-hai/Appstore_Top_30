@@ -1,0 +1,215 @@
+{
+  "total": 5,
+  "publishers": [
+    {
+      "id": "microfun",
+      "name": "柠萌互动 (Microfun)",
+      "region": "china",
+      "country": "中国 🇨🇳",
+      "category": "合成+剧情霸主 (Merge-2 King)",
+      "desc": "全球“合成+剧情（Merge-2）”赛道当之无愧的霸主，代表作《Gossip Harbor》、《Seaside Escape》。",
+      "published_games": [
+        {
+          "name": "Gossip Harbor (海滨小镇)",
+          "icon": "⛵",
+          "release_date": "2022-06",
+          "status": "全球 Merge #1",
+          "desc": "豪门八卦 + 餐厅合成，单月流水超 3000 万美元"
+        },
+        {
+          "name": "Seaside Escape (海滨消消乐)",
+          "icon": "🏖️",
+          "release_date": "2022-11",
+          "status": "全球畅销榜前列",
+          "desc": "海岛度假村修复 + 物品订单合成"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Chef Merge: Bistro Story",
+          "icon": "🍳",
+          "release_date": "2025-03",
+          "status": "高买量扩量中",
+          "desc": "主打美食烹饪与环球老街复兴的二合新旗舰"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Merge Manor Detective (暂定名)",
+          "icon": "🕵️‍♀️",
+          "expected_date": "2026 Q4",
+          "status": "测试预约中",
+          "desc": "悬疑侦探推理解谜 + 豪门合成沉浸式剧情"
+        }
+      ]
+    },
+    {
+      "id": "popmart_boke",
+      "name": "波克城市 (Pop Mart / Boke)",
+      "region": "china",
+      "country": "中国 🇨🇳",
+      "category": "方块消除大厂 (Tile Match)",
+      "desc": "早期凭《宾果消消消》起家，近年来在海外通过《Tile Master》系列在方块消除领域占据巨大份额。",
+      "published_games": [
+        {
+          "name": "Tile Master",
+          "icon": "🧩",
+          "release_date": "2020-06",
+          "status": "数亿下载",
+          "desc": "3重方块匹配消消乐开山之作"
+        },
+        {
+          "name": "Match Tile 3D: Triple Puzzle",
+          "icon": "🀄",
+          "release_date": "2021-08",
+          "status": "出海主力",
+          "desc": "3D麻将图案三连消除"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Tile Blossom Garden",
+          "icon": "🌸",
+          "release_date": "2025-01",
+          "status": "女性榜单黑马",
+          "desc": "国风唯美花卉收集与连连看消除"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Tile Tycoon: City Builder",
+          "icon": "🏙️",
+          "expected_date": "2026 Q4",
+          "status": "菲律宾/马来西亚软发射",
+          "desc": "方块消除 + 模拟城市经营大外围"
+        }
+      ]
+    },
+    {
+      "id": "three_seven",
+      "name": "三七互娱 (37 Interactive)",
+      "region": "china",
+      "country": "中国 🇨🇳",
+      "category": "重度融合开创者 (Match-3 + SLG)",
+      "desc": "凭《Puzzles & Survival》（三消+SLG）开创了重度融合流派，用休闲消除外壳吸引欧美玩家。",
+      "published_games": [
+        {
+          "name": "Puzzles & Survival",
+          "icon": "🧟",
+          "release_date": "2020-08",
+          "status": "累计流水超百亿",
+          "desc": "末日三消 + SLG 策略融合标杆"
+        },
+        {
+          "name": "Puzzles & Chaos: Frozen Castle",
+          "icon": "🧊",
+          "release_date": "2023-09",
+          "status": "长青营收",
+          "desc": "冰雪奇幻题材三消 SLG"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Puzzles & Conquest: Dragon War",
+          "icon": "🐉",
+          "release_date": "2024-12",
+          "status": "欧美宣发爆推",
+          "desc": "魔幻驯龙三消策略"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Project M3: Mech Wars (暂定名)",
+          "icon": "🤖",
+          "expected_date": "2026 Q4",
+          "status": "欧美全球预预约",
+          "desc": "赛博机甲题材三消 + 基地建设融合大作"
+        }
+      ]
+    },
+    {
+      "id": "river_game",
+      "name": "江娱互动 (River Game)",
+      "region": "china",
+      "country": "中国 🇨🇳",
+      "category": "合成SLG代表 (Merge + Strategy)",
+      "desc": "虽然以策略见长，但其爆款《Top War》（口袋兵团）本质是利用“合成（Merge）”玩法作为核心成长机制。",
+      "published_games": [
+        {
+          "name": "Top War: Battle Game (口袋兵团)",
+          "icon": "🪖",
+          "release_date": "2019-12",
+          "status": "全球累积破10亿刀",
+          "desc": "拖拽士兵与建筑物即时合成升级的合并 SLG"
+        },
+        {
+          "name": "Top Heroes",
+          "icon": "🗡️",
+          "release_date": "2024-01",
+          "status": "畅销榜黑马",
+          "desc": "英雄划屏合成与冒险小队建造"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Merge Survival: Wasteland",
+          "icon": "☣️",
+          "release_date": "2025-05",
+          "status": "出海飙升榜",
+          "desc": "废土生存与基地设施合成升级"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Top Galaxy: Fleet Merge",
+          "icon": "🚀",
+          "expected_date": "2026 Q4",
+          "status": "海外软发测数据中",
+          "desc": "星际战舰拖拽合成与银河建造"
+        }
+      ]
+    },
+    {
+      "id": "magic_tavern",
+      "name": "麦吉太文 (Magic Tavern)",
+      "region": "china",
+      "country": "中国 🇨🇳",
+      "category": "时尚美妆三消颠覆者",
+      "desc": "代表作《Project Makeover》，将“三消 + 时尚换装 + 房屋改造”完美融合，一度颠覆欧美市场。",
+      "published_games": [
+        {
+          "name": "Project Makeover",
+          "icon": "💄",
+          "release_date": "2020-11",
+          "status": "全球爆款",
+          "desc": "素人改造 + 服装美妆 + 室内设计三消巨作"
+        },
+        {
+          "name": "Matchington Mansion",
+          "icon": "🏡",
+          "release_date": "2017-10",
+          "status": "老牌经典",
+          "desc": "老宅大逃亡与三消装修"
+        }
+      ],
+      "new_games": [
+        {
+          "name": "Makeover Stories",
+          "icon": "👗",
+          "release_date": "2024-10",
+          "status": "高买量长青",
+          "desc": "好莱坞明星剧组换装与三消挑战"
+        }
+      ],
+      "upcoming_games": [
+        {
+          "name": "Project Style Town",
+          "icon": "👠",
+          "expected_date": "2026 Q4",
+          "status": "欧美全球预预约",
+          "desc": "时尚街区建设 + 服饰合成换装新品"
+        }
+      ]
+    }
+  ]
+}

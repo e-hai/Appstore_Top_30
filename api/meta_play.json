@@ -1,0 +1,420 @@
+{
+  "regions": {
+    "north_america": {
+      "name": "北美区",
+      "countries": [
+        {
+          "code": "us",
+          "name": "美国"
+        },
+        {
+          "code": "ca",
+          "name": "加拿大"
+        }
+      ]
+    },
+    "latam": {
+      "name": "拉美区",
+      "countries": [
+        {
+          "code": "mx",
+          "name": "墨西哥"
+        },
+        {
+          "code": "br",
+          "name": "巴西"
+        },
+        {
+          "code": "ar",
+          "name": "阿根廷"
+        },
+        {
+          "code": "cl",
+          "name": "智利"
+        },
+        {
+          "code": "co",
+          "name": "哥伦比亚"
+        },
+        {
+          "code": "pe",
+          "name": "秘鲁"
+        }
+      ]
+    },
+    "europe": {
+      "name": "欧洲区",
+      "countries": [
+        {
+          "code": "gb",
+          "name": "英国"
+        },
+        {
+          "code": "de",
+          "name": "德国"
+        },
+        {
+          "code": "fr",
+          "name": "法国"
+        },
+        {
+          "code": "it",
+          "name": "意大利"
+        },
+        {
+          "code": "es",
+          "name": "西班牙"
+        }
+      ]
+    },
+    "mena": {
+      "name": "中东与北非",
+      "countries": [
+        {
+          "code": "ae",
+          "name": "阿联酋"
+        },
+        {
+          "code": "sa",
+          "name": "沙特阿拉伯"
+        },
+        {
+          "code": "il",
+          "name": "以色列"
+        },
+        {
+          "code": "tr",
+          "name": "土耳其"
+        },
+        {
+          "code": "eg",
+          "name": "埃及"
+        },
+        {
+          "code": "ma",
+          "name": "摩洛哥"
+        }
+      ]
+    },
+    "east_asia": {
+      "name": "东北亚区",
+      "countries": [
+        {
+          "code": "jp",
+          "name": "日本"
+        },
+        {
+          "code": "kr",
+          "name": "韩国"
+        },
+        {
+          "code": "tw",
+          "name": "台湾"
+        },
+        {
+          "code": "hk",
+          "name": "香港"
+        },
+        {
+          "code": "mo",
+          "name": "澳门"
+        }
+      ]
+    },
+    "asean": {
+      "name": "东南亚区",
+      "countries": [
+        {
+          "code": "sg",
+          "name": "新加坡"
+        },
+        {
+          "code": "my",
+          "name": "马来西亚"
+        },
+        {
+          "code": "th",
+          "name": "泰国"
+        },
+        {
+          "code": "id",
+          "name": "印度尼西亚"
+        },
+        {
+          "code": "vn",
+          "name": "越南"
+        },
+        {
+          "code": "ph",
+          "name": "菲律宾"
+        }
+      ]
+    },
+    "oceania": {
+      "name": "大洋洲区",
+      "countries": [
+        {
+          "code": "au",
+          "name": "澳大利亚"
+        },
+        {
+          "code": "nz",
+          "name": "新西兰"
+        }
+      ]
+    },
+    "south_asia": {
+      "name": "南亚区",
+      "countries": [
+        {
+          "code": "in",
+          "name": "印度"
+        },
+        {
+          "code": "pk",
+          "name": "巴基斯坦"
+        },
+        {
+          "code": "bd",
+          "name": "孟加拉国"
+        },
+        {
+          "code": "lk",
+          "name": "斯里兰卡"
+        }
+      ]
+    },
+    "africa": {
+      "name": "非洲区",
+      "countries": [
+        {
+          "code": "za",
+          "name": "南非"
+        },
+        {
+          "code": "ng",
+          "name": "尼日利亚"
+        },
+        {
+          "code": "ke",
+          "name": "肯尼亚"
+        }
+      ]
+    }
+  },
+  "charts": {
+    "free": "免费榜",
+    "paid": "付费榜",
+    "grossing": "畅销榜"
+  },
+  "genres": [],
+  "app_genres": [
+    {
+      "id": "ART_AND_DESIGN",
+      "name": "艺术与设计"
+    },
+    {
+      "id": "AUTO_AND_VEHICLES",
+      "name": "汽车与车辆"
+    },
+    {
+      "id": "BEAUTY",
+      "name": "美容"
+    },
+    {
+      "id": "BOOKS_AND_REFERENCE",
+      "name": "图书与工具书"
+    },
+    {
+      "id": "BUSINESS",
+      "name": "商务"
+    },
+    {
+      "id": "COMICS",
+      "name": "漫画"
+    },
+    {
+      "id": "COMMUNICATION",
+      "name": "通讯"
+    },
+    {
+      "id": "DATING",
+      "name": "约会"
+    },
+    {
+      "id": "EDUCATION",
+      "name": "教育"
+    },
+    {
+      "id": "ENTERTAINMENT",
+      "name": "娱乐"
+    },
+    {
+      "id": "EVENTS",
+      "name": "活动"
+    },
+    {
+      "id": "FAMILY",
+      "name": "家庭"
+    },
+    {
+      "id": "FINANCE",
+      "name": "财务"
+    },
+    {
+      "id": "FOOD_AND_DRINK",
+      "name": "美食与饮品"
+    },
+    {
+      "id": "HEALTH_AND_FITNESS",
+      "name": "健康与健身"
+    },
+    {
+      "id": "HOUSE_AND_HOME",
+      "name": "家居"
+    },
+    {
+      "id": "LIBRARIES_AND_DEMO",
+      "name": "图书与演示"
+    },
+    {
+      "id": "LIFESTYLE",
+      "name": "生活方式"
+    },
+    {
+      "id": "MAPS_AND_NAVIGATION",
+      "name": "地图与导航"
+    },
+    {
+      "id": "MEDICAL",
+      "name": "医疗"
+    },
+    {
+      "id": "MUSIC_AND_AUDIO",
+      "name": "音乐与音频"
+    },
+    {
+      "id": "NEWS_AND_MAGAZINES",
+      "name": "新闻与杂志"
+    },
+    {
+      "id": "PARENTING",
+      "name": "育儿"
+    },
+    {
+      "id": "PERSONALIZATION",
+      "name": "个性化"
+    },
+    {
+      "id": "PHOTOGRAPHY",
+      "name": "摄影"
+    },
+    {
+      "id": "PRODUCTIVITY",
+      "name": "效率"
+    },
+    {
+      "id": "SHOPPING",
+      "name": "购物"
+    },
+    {
+      "id": "SOCIAL",
+      "name": "社交"
+    },
+    {
+      "id": "SPORTS",
+      "name": "体育"
+    },
+    {
+      "id": "TOOLS",
+      "name": "工具"
+    },
+    {
+      "id": "TRAVEL_AND_LOCAL",
+      "name": "旅游与本地"
+    },
+    {
+      "id": "VIDEO_PLAYERS",
+      "name": "视频播放器"
+    },
+    {
+      "id": "WATCH_FACE",
+      "name": "表盘"
+    },
+    {
+      "id": "WEATHER",
+      "name": "天气"
+    }
+  ],
+  "game_genres": [
+    {
+      "id": "GAME_ACTION",
+      "name": "动作"
+    },
+    {
+      "id": "GAME_ADVENTURE",
+      "name": "冒险"
+    },
+    {
+      "id": "GAME_ARCADE",
+      "name": "街机"
+    },
+    {
+      "id": "GAME_BOARD",
+      "name": "桌面游戏"
+    },
+    {
+      "id": "GAME_CARD",
+      "name": "卡牌"
+    },
+    {
+      "id": "GAME_CASINO",
+      "name": "赌场"
+    },
+    {
+      "id": "GAME_CASUAL",
+      "name": "休闲"
+    },
+    {
+      "id": "GAME_EDUCATIONAL",
+      "name": "游戏 · 教育"
+    },
+    {
+      "id": "GAME_MUSIC",
+      "name": "游戏 · 音乐"
+    },
+    {
+      "id": "GAME_PUZZLE",
+      "name": "解谜"
+    },
+    {
+      "id": "GAME_RACING",
+      "name": "竞速"
+    },
+    {
+      "id": "GAME_ROLE_PLAYING",
+      "name": "角色扮演"
+    },
+    {
+      "id": "GAME_SIMULATION",
+      "name": "模拟"
+    },
+    {
+      "id": "GAME_SPORTS",
+      "name": "游戏 · 体育"
+    },
+    {
+      "id": "GAME_STRATEGY",
+      "name": "策略"
+    },
+    {
+      "id": "GAME_TRIVIA",
+      "name": "问答"
+    },
+    {
+      "id": "GAME_WORD",
+      "name": "字谜"
+    }
+  ],
+  "store": "play"
+}

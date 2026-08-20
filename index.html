@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App Store Top 30 数据看板</title>
+  <link rel="stylesheet" href="./static/styles.css">
+</head>
+<body data-theme="dark">
+  <div id="loading-bar" class="loading-bar"></div>
+
+  <div class="app-layout">
+    <div class="content">
+      <header class="content-header">
+        <div class="content-title-row">
+          <strong class="content-title">榜单分析</strong>
+          <div class="header-controls">
+            <button type="button" id="btn-intel-hub" class="btn-primary btn-sm" style="height:34px; padding:0 14px; font-size:12.5px; display:inline-flex; align-items:center; gap:6px;" title="打开智能归因与品类趋势研判中心">
+              <span>💡 智能分析大盘</span>
+            </button>
+            <button type="button" id="debug-btn" class="debug-btn" title="查看 API 原始 JSON 调试数据">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+              <span>JSON 调试</span>
+            </button>
+            <div class="theme-switch" role="group" aria-label="主题">
+              <button type="button" class="theme-option" data-theme="dark" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span>深色</span>
+              </button>
+              <button type="button" class="theme-option" data-theme="light" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                <span>浅色</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <label>日期
+            <select id="date-select"></select>
+          </label>
+          <label>商店
+            <select id="store-select">
+              <option value="app_store">App Store</option>
+              <option value="play">Google Play</option>
+            </select>
+          </label>
+          <label>地区
+            <select id="region-select"></select>
+          </label>
+          <label>国家
+            <select id="country-select"></select>
+          </label>
+          <label>榜单
+            <select id="chart-select"></select>
+          </label>
+          <label>大类
+            <select id="category-select"></select>
+          </label>
+          <label>分类
+            <select id="subcategory-select"></select>
+          </label>
+        </div>
+      </header>
+
+      <main class="dashboard-grid">
+        <section class="panel table-panel">
+          <div class="panel-head">
+            <div class="panel-head-left">
+              <div id="panel-title" class="panel-title">榜单明细</div>
+              <div id="table-count" class="panel-sub"></div>
+            </div>
+
+            <!-- 功能一：异动筛选切页 -->
+            <div class="view-tabs" role="tablist">
+              <button type="button" class="tab-btn active" data-tab="all">全榜</button>
+              <button type="button" class="tab-btn" data-tab="up">🔥 飙升榜</button>
+              <button type="button" class="tab-btn" data-tab="new">🆕 新上榜</button>
+              <button type="button" class="tab-btn" data-tab="down">🔻 跌幅榜</button>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:center;">
+              <div class="search-box" id="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z"/></svg>
+                <input id="search-input" type="search" placeholder="搜索应用或开发者">
+              </div>
+              <button type="button" id="btn-toggle-table-width" class="btn-secondary btn-sm" style="height:38px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;" title="切换榜单明细自适应全屏/双栏模式">↔ 宽度自适应</button>
+            </div>
+          </div>
+          <div id="table-wrap" class="table-wrap">
+            <table>
+              <thead id="table-head"></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+            <div id="empty-state" class="empty-state hidden">暂无数据，请调整筛选条件或先运行抓取。</div>
+          </div>
+        </section>
+
+        <section id="trends-section" class="panel trends-panel">
+          <div class="panel-head">
+            <div>
+              <div id="trends-title" class="panel-title">📈 榜单趋势</div>
+              <div id="trends-meta" class="panel-sub">默认显示当前榜单 Top 5 应用大盘走势</div>
+            </div>
+            <div class="trends-controls">
+              <button type="button" id="btn-attribution" class="btn-secondary btn-sm">💡 归因分析</button>
+              <button type="button" id="reset-top5-btn" class="btn-secondary btn-sm hidden">↺ 重置 Top 5</button>
+            </div>
+          </div>
+          <div id="trends-chart" class="trends-chart"></div>
+          <p class="trend-note">数值越小排名越靠前，相同日期取最佳排名。</p>
+
+          <!-- 趋势大盘深度分析微型面板 (位于趋势图下方) -->
+          <div id="trend-insights-grid" class="trend-insights-grid">
+            <div class="insight-card">
+              <span class="insight-label">🚀 最大上升名次</span>
+              <span id="quant-top-spiker" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">👑 最强留存应用</span>
+              <span id="quant-top-stable" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">⚡ 榜单竞争热度</span>
+              <span id="quant-avg-volatility" class="insight-value">-</span>
+            </div>
+            <div class="insight-card">
+              <span class="insight-label">🔥 飙升/新上榜数</span>
+              <span id="quant-spiking-count" class="insight-value">-</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- 💡 智能归因与品类趋势研判统一抽屉 -->
+  <div id="intel-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head" style="flex-direction: column; align-items: stretch; gap: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div class="panel-title" id="intel-drawer-title">💡 智能分析大盘</div>
+          <div class="panel-sub" id="intel-drawer-sub">每日应用异动归因与全网品类宏观趋势</div>
+        </div>
+        <button id="intel-close" class="icon-button" aria-label="关闭" title="关闭">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Segmented Tab Switcher inside Drawer -->
+      <div class="view-tabs" role="tablist">
+        <button type="button" class="tab-btn active" id="intel-tab-attr" data-intel-tab="attr">💡 每日应用归因分析</button>
+        <button type="button" class="tab-btn" id="intel-tab-cat" data-intel-tab="cat">📊 全网品类宏观趋势</button>
+        <button type="button" class="tab-btn" id="intel-tab-giants" data-intel-tab="giants">🎮 20大休闲巨头动态</button>
+      </div>
+    </div>
+
+    <div class="drawer-body">
+      <!-- 面板 1: 每日应用归因分析 -->
+      <div id="intel-panel-attr" class="intel-panel">
+        <div id="attribution-summary-drawer" class="attribution-summary" style="margin-bottom: 12px;">-</div>
+        <div id="attribution-factors-list-drawer" class="attribution-factors-list" style="margin-bottom: 16px;"></div>
+
+        <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
+          <div class="attr-section-title">🚀 今日冲榜爆发 Top 3</div>
+          <div id="attr-rising-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">👑 最强留存霸榜 Top 3</div>
+          <div id="attr-stable-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">📉 流量回调下滑 Top 3</div>
+          <div id="attr-falling-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">🆕 今日新上榜 App</div>
+          <div id="attr-new-list" class="attr-list"></div>
+        </div>
+      </div>
+
+      <!-- 面板 2: 全网品类宏观趋势 -->
+      <div id="intel-panel-cat" class="intel-panel hidden">
+        <div class="attr-section" style="margin-top: 0; border-top: 0; padding-top: 0;">
+          <div class="attr-section-title">🚀 最具飙升潜力品类 Top 3</div>
+          <div id="category-rising-list" class="attr-list"></div>
+        </div>
+
+        <div class="attr-section">
+          <div class="attr-section-title">📉 流量回调/衰退品类 Top 3</div>
+          <div id="category-declining-list" class="attr-list"></div>
+        </div>
+      </div>
+
+      <!-- 面板 3: 20大休闲游戏厂商动态矩阵 -->
+      <div id="intel-panel-giants" class="intel-panel hidden">
+        <!-- 厂商区域切页 -->
+        <div class="view-tabs" role="tablist" style="margin-bottom: 12px; font-size: 11px;">
+          <button type="button" class="tab-btn active giant-region-btn" data-region="all">全域 (20)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="turkey">🇹🇷 土耳其 (4)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="china">🇨🇳 中国 (5)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="western">🇺🇸🇪🇺 欧美 (8)</button>
+          <button type="button" class="tab-btn giant-region-btn" data-region="asia">日韩/东南亚 (3)</button>
+        </div>
+
+        <div id="casual-giants-list" class="attr-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 功能三：开发者/发行商矩阵分析抽屉 -->
+  <div id="publisher-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title" id="pub-title">发行商产品矩阵</div>
+        <div class="panel-sub" id="pub-meta"></div>
+      </div>
+      <button id="pub-close" class="icon-button" aria-label="关闭" title="关闭">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+      <div id="pub-content" class="pub-content"></div>
+    </div>
+  </div>
+
+  <!-- 调试 JSON 数据抽屉 -->
+  <div id="debug-drawer" class="drawer debug-drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="panel-title">🛠️ API 原始 JSON 调试数据</div>
+        <div class="panel-sub" id="debug-meta">实时 API 响应结构</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button type="button" id="debug-copy-btn" class="btn-secondary btn-sm">📋 复制 JSON</button>
+        <button type="button" id="debug-close" class="icon-button" aria-label="关闭" title="关闭">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div class="debug-tabs">
+        <button type="button" class="debug-tab-btn active" data-type="rankings">📋 rankings (明细)</button>
+        <button type="button" class="debug-tab-btn" data-type="trend">📈 trend (趋势)</button>
+        <button type="button" class="debug-tab-btn" data-type="summary">📊 summary (概览)</button>
+        <button type="button" class="debug-tab-btn" data-type="meta">🌐 meta (元数据)</button>
+      </div>
+      <pre id="debug-json-code" class="debug-json-code"><code>// 点击上方切换要查看的 API 响应 JSON...</code></pre>
+    </div>
+  </div>
+
+  <div id="drawer-mask" class="drawer-mask hidden"></div>
+
+  <script src="./static/app.js"></script>
+</body>
+</html>

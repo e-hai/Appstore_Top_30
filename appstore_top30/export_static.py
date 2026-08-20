@@ -5,7 +5,6 @@ import logging
 import os
 import shutil
 import sqlite3
-import statistics
 import urllib.parse
 from pathlib import Path
 
@@ -128,8 +127,8 @@ def generate_meta_json(conn: sqlite3.Connection, date: str | None, store: str) -
     }
 
 
-def load_all_rankings_for_date(conn: sqlite3.Connection, date: str, store: str = "app_store") -> dict[tuple[str, str], list[dict]]:
-    """Bulk load all ranking items for a single day into an in-memory dictionary keyed by (country, chart_type)."""
+def load_all_rankings_for_date(conn: sqlite3.Connection, date: str, store: str = "app_store") -> dict[tuple[str, str, str], list[dict]]:
+    """Bulk load all ranking items for a single day into an in-memory dictionary keyed by (country, chart_type, genre_id)."""
     if store == "play":
         rows = conn.execute(
             """
@@ -141,7 +140,7 @@ def load_all_rankings_for_date(conn: sqlite3.Connection, date: str, store: str =
             JOIN play_snapshots s ON s.id = r.snapshot_id
             LEFT JOIN play_apps a ON a.package_name = r.package_name
             WHERE s.date = ?
-            ORDER BY s.country, s.chart_type, r.rank_no
+            ORDER BY s.country, s.chart_type, s.category_id, r.rank_no
             """,
             (date,),
         ).fetchall()
@@ -156,20 +155,33 @@ def load_all_rankings_for_date(conn: sqlite3.Connection, date: str, store: str =
             JOIN snapshots s ON s.id = r.snapshot_id
             LEFT JOIN apps a ON a.app_id = r.app_id
             WHERE s.date = ?
-            ORDER BY s.country, s.chart_type, r.rank_no
+            ORDER BY s.country, s.chart_type, s.genre_id, r.rank_no
             """,
             (date,),
         ).fetchall()
 
-    grouped: dict[tuple[str, str], list[dict]] = {}
+    grouped: dict[tuple[str, str, str], list[dict]] = {}
+    default_genre = "all" if store == "play" else "36"
     for r in rows:
         d = dict(r)
+        country = d["country"]
+        chart_type = d["chart_type"]
+        genre_id = str(d["genre_id"])
         d["genre_name"] = (
             config.play_category_display_name(d["genre_id"], d["genre_name"])
             if store == "play"
             else config.genre_display_name(d["genre_id"], d["genre_name"])
         )
-        grouped.setdefault((d["country"], d["chart_type"]), []).append(d)
+        if d.get("rating") is not None:
+            d["rating"] = round(float(d["rating"]), 2)
+
+        # Store by exact genre_id
+        grouped.setdefault((country, chart_type, genre_id), []).append(d)
+
+        # Also store to _overall if it is the default overall genre
+        if genre_id == default_genre:
+            grouped.setdefault((country, chart_type, "_overall"), []).append(d)
+
     return grouped
 
 
@@ -250,7 +262,7 @@ def fast_compare_rankings(prev_rows: list[dict], curr_rows: list[dict]) -> list[
     return changes
 
 
-def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> None:
+def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> None:
     """Export complete static website and static JSON API endpoints to out_dir for GitHub Pages."""
     out_dir.mkdir(parents=True, exist_ok=True)
     api_dir = out_dir / "api"
@@ -322,8 +334,8 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> No
                 summaries = []
                 for country_spec in config.iter_countries():
                     for chart_type in config.CHART_TYPES.keys():
-                        c_rows = curr_day_map.get((country_spec.code, chart_type), [])
-                        p_rows = prev_day_map.get((country_spec.code, chart_type), [])
+                        c_rows = curr_day_map.get((country_spec.code, chart_type, "_overall"), [])
+                        p_rows = prev_day_map.get((country_spec.code, chart_type, "_overall"), [])
                         has_prev = bool(p_rows)
                         changes = fast_compare_rankings(p_rows, c_rows) if (has_prev or c_rows) else []
                         status_counts = {"new": 0, "left": 0, "up": 0, "down": 0, "same": 0}
@@ -355,58 +367,87 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> No
                     json.dumps(sum_payload, ensure_ascii=False), encoding="utf-8"
                 )
 
-                # Rankings JSON
+                # Export overall and per-genre rankings JSON
                 for region_key, spec in config.REGIONS.items():
                     for country_code, country_name in spec["countries"]:
                         for chart_type in config.CHART_TYPES.keys():
-                            c_rows = curr_day_map.get((country_code, chart_type), [])
-                            if not c_rows:
-                                continue
-                            p_rows = prev_day_map.get((country_code, chart_type), [])
-                            changes = fast_compare_rankings(p_rows, c_rows)
-                            items = [c for c in changes if c.get("status") != "left"]
+                            # 1. Default overall ranking
+                            c_rows = curr_day_map.get((country_code, chart_type, "_overall"), [])
+                            if c_rows:
+                                p_rows = prev_day_map.get((country_code, chart_type, "_overall"), [])
+                                changes = fast_compare_rankings(p_rows, c_rows)
+                                items = [c for c in changes if c.get("status") != "left"]
 
-                            # Rising / Falling / Stable
-                            rising = sorted([i for i in items if (i.get("rank_change") or 0) > 0], key=lambda x: x["rank_change"], reverse=True)[:3]
-                            falling = sorted([i for i in items if (i.get("rank_change") or 0) < 0], key=lambda x: x["rank_change"])[:3]
-                            stable = sorted([i for i in items if i.get("curr_rank") and i["curr_rank"] <= 5], key=lambda x: x["curr_rank"])[:3]
-                            new_apps = [i for i in items if i.get("status") == "new"][:3]
+                                rising = sorted([i for i in items if (i.get("rank_change") or 0) > 0], key=lambda x: x["rank_change"], reverse=True)[:3]
+                                falling = sorted([i for i in items if (i.get("rank_change") or 0) < 0], key=lambda x: x["rank_change"])[:3]
+                                stable = sorted([i for i in items if i.get("curr_rank") and i["curr_rank"] <= 5], key=lambda x: x["curr_rank"])[:3]
+                                new_apps = [i for i in items if i.get("status") == "new"][:3]
 
-                            attribution = {
-                                "date": date,
-                                "country": country_code,
-                                "country_name": country_name,
-                                "chart_name": config.CHART_TYPES[chart_type],
-                                "summary_text": f"今日 {country_name} {config.CHART_TYPES[chart_type]} 榜单保持活跃流动，共有 {len(new_apps)} 款新晋产品与 {len(rising)} 款快速爬榜产品。",
-                                "factors": [
-                                    {"icon": "🚀", "title": "买量主导型增长", "desc": "以新素材集中投放驱动的排名爆发"},
-                                    {"icon": "⚡", "title": "版本大更与运营", "desc": "伴随内容大版本发布的自然回流"},
-                                ],
-                                "rising_apps": rising,
-                                "falling_apps": falling,
-                                "stable_apps": stable,
-                                "new_apps": new_apps,
-                            }
+                                attribution = {
+                                    "date": date,
+                                    "country": country_code,
+                                    "country_name": country_name,
+                                    "chart_name": config.CHART_TYPES[chart_type],
+                                    "summary_text": f"今日 {country_name} {config.CHART_TYPES[chart_type]} 榜单保持活跃流动，共有 {len(new_apps)} 款新晋产品与 {len(rising)} 款快速爬榜产品。",
+                                    "factors": [
+                                        {"icon": "🚀", "title": "买量主导型增长", "desc": "以新素材集中投放驱动的排名爆发"},
+                                        {"icon": "⚡", "title": "版本大更与运营", "desc": "伴随内容大版本发布的自然回流"},
+                                    ],
+                                    "rising_apps": rising,
+                                    "falling_apps": falling,
+                                    "stable_apps": stable,
+                                    "new_apps": new_apps,
+                                }
 
-                            rankings_payload = {
-                                "date": date,
-                                "prev_date": prev_date if p_rows else None,
-                                "has_previous": bool(p_rows),
-                                "country": country_code,
-                                "chart": chart_type,
-                                "store": store,
-                                "rows": items,
-                                "quant_summary": {
-                                    "avg_volatility": "1.20",
-                                    "spiking_count": len(rising),
-                                    "stable_count": len(stable),
-                                    "new_count": len(new_apps),
-                                },
-                                "market_attribution": attribution,
-                            }
-                            (rankings_dir / f"{store}_{country_code}_{chart_type}_{date}.json").write_text(
-                                json.dumps(rankings_payload, ensure_ascii=False), encoding="utf-8"
-                            )
+                                rankings_payload = {
+                                    "date": date,
+                                    "prev_date": prev_date if p_rows else None,
+                                    "has_previous": bool(p_rows),
+                                    "country": country_code,
+                                    "chart": chart_type,
+                                    "store": store,
+                                    "rows": items,
+                                    "quant_summary": {
+                                        "avg_volatility": "1.20",
+                                        "spiking_count": len(rising),
+                                        "stable_count": len(stable),
+                                        "new_count": len(new_apps),
+                                    },
+                                    "market_attribution": attribution,
+                                }
+                                (rankings_dir / f"{store}_{country_code}_{chart_type}_{date}.json").write_text(
+                                    json.dumps(rankings_payload, ensure_ascii=False), encoding="utf-8"
+                                )
+
+                            # 2. Key Game Genres & Categories (Games Top 30)
+                            key_genres = {"GAME"} if store == "play" else {config.GAMES_GENRE_ID}
+                            for (c_c, c_t, g_id), g_rows in curr_day_map.items():
+                                if c_c != country_code or c_t != chart_type or g_id == "_overall" or g_id not in key_genres:
+                                    continue
+                                p_g_rows = prev_day_map.get((country_code, chart_type, g_id), [])
+                                g_changes = fast_compare_rankings(p_g_rows, g_rows)
+                                g_items = [c for c in g_changes if c.get("status") != "left"]
+
+                                g_payload = {
+                                    "date": date,
+                                    "prev_date": prev_date if p_g_rows else None,
+                                    "has_previous": bool(p_g_rows),
+                                    "country": country_code,
+                                    "chart": chart_type,
+                                    "store": store,
+                                    "genre_id": g_id,
+                                    "rows": g_items,
+                                    "quant_summary": {
+                                        "avg_volatility": "1.20",
+                                        "spiking_count": len([i for i in g_items if (i.get("rank_change") or 0) > 0]),
+                                        "stable_count": len([i for i in g_items if i.get("curr_rank") and i["curr_rank"] <= 5]),
+                                        "new_count": len([i for i in g_items if i.get("status") == "new"]),
+                                    },
+                                    "market_attribution": {},
+                                }
+                                (rankings_dir / f"{store}_{country_code}_{chart_type}_{g_id}_{date}.json").write_text(
+                                    json.dumps(g_payload, ensure_ascii=False), encoding="utf-8"
+                                )
 
         # 7. Generate trend data for Top apps across countries and charts
         for store in ["app_store", "play"]:
@@ -414,7 +455,7 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> No
             for region_key, spec in config.REGIONS.items():
                 for country_code, country_name in spec["countries"]:
                     for chart_type in config.CHART_TYPES.keys():
-                        c_rows = curr_map.get((country_code, chart_type), [])
+                        c_rows = curr_map.get((country_code, chart_type, "_overall"), [])
                         if not c_rows:
                             continue
                         app_ids = [str(r["app_id"]) for r in c_rows[:30]]
@@ -422,7 +463,7 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 7) -> No
                         for app_id in app_ids:
                             points = []
                             for d in recent_dates:
-                                day_rows = cached_days.get((d, store), {}).get((country_code, chart_type), [])
+                                day_rows = cached_days.get((d, store), {}).get((country_code, chart_type, "_overall"), [])
                                 match = next((x for x in day_rows if str(x["app_id"]) == str(app_id)), None)
                                 if match:
                                     points.append({

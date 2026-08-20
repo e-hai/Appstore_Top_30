@@ -138,6 +138,10 @@ function resolveStaticApiUrl(path) {
     const date = params.get("date") || state.date;
     const country = params.get("country") || "us";
     const chart = params.get("chart") || "free";
+    const genre = params.get("genre");
+    if (genre && genre !== "36" && genre !== "all") {
+      return `${base}/rankings/${store}_${country}_${chart}_${genre}_${date}.json`;
+    }
     return `${base}/rankings/${store}_${country}_${chart}_${date}.json`;
   }
   if (pathname === "/api/trend") {
@@ -156,8 +160,14 @@ async function api(path) {
   }
 
   let response = await fetch(fetchUrl);
-  if (!response.ok && fetchUrl !== path) {
-    // Fallback try original path if static path failed
+  if (!response.ok && isStaticHosting() && fetchUrl.includes("/rankings/")) {
+    const fallbackUrl = `./api/rankings/${state.store}_${state.country}_${state.chart}_${state.date}.json`;
+    if (fetchUrl !== fallbackUrl) {
+      response = await fetch(fallbackUrl);
+    }
+  }
+  if (!response.ok && fetchUrl !== path && !isStaticHosting()) {
+    // Fallback try original path if local dynamic server
     response = await fetch(path);
   }
 

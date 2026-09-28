@@ -1,7 +1,7 @@
 {
   "dates": [
     {
-      "date": "2026-09-27",
+      "date": "2026-09-28",
       "stores": {
         "app_store": {
           "countries": 39,
@@ -10,13 +10,13 @@
         },
         "play": {
           "countries": 39,
-          "snapshots": 5579,
-          "entries": 138941
+          "snapshots": 5508,
+          "entries": 136434
         }
       },
       "countries": 39,
-      "snapshots": 10961,
-      "entries": 282361
+      "snapshots": 10890,
+      "entries": 279854
     }
   ]
 }

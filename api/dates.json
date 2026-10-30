@@ -1553,18 +1553,18 @@
       "stores": {
         "app_store": {
           "countries": 39,
-          "snapshots": 5382,
-          "entries": 143465
+          "snapshots": 5376,
+          "entries": 143285
         },
         "play": {
           "countries": 39,
-          "snapshots": 5598,
-          "entries": 139467
+          "snapshots": 5604,
+          "entries": 139765
         }
       },
       "countries": 39,
       "snapshots": 10980,
-      "entries": 282932
+      "entries": 283050
     }
   ]
 }

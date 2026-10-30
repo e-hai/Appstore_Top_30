@@ -1,0 +1,357 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "App Store & Google Play Top 30 开放数据 API",
+    "version": "1.0.0",
+    "description": "全球 39 个国家/地区 App Store 与 Google Play 每日榜单 Top 30、品类大盘趋势、20 休闲游戏大厂产品矩阵及多维商业归因分析数据开放接口。\n\n### 接入特性\n- **零依赖 & 纯静态**：所有接口均为预构建的标准 JSON 静态文件，依托全球 CDN 托管。\n- **跨域支持**：全量支持 CORS (`Access-Control-Allow-Origin: *`)，前端与后端可直接发起 HTTP GET 请求。\n- **零鉴权**：开放式访问，无需 API Key 或 Token。",
+    "contact": {
+      "name": "App Store Top 30 Project",
+      "url": "https://e-hai.github.io/Appstore_Top_30"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://e-hai.github.io/Appstore_Top_30",
+      "description": "GitHub Pages 线上生产环境 (带全球 CDN 加速)"
+    },
+    {
+      "url": ".",
+      "description": "当前相对路径环境"
+    }
+  ],
+  "paths": {
+    "/api/dates.json": {
+      "get": {
+        "summary": "获取可用历史抓取日期列表",
+        "description": "返回平台已收录的所有历史日期清单及 App Store / Google Play 的抓取统计指标。",
+        "responses": {
+          "200": {
+            "description": "成功返回可用日期列表",
+            "content": {
+              "application/json": {
+                "example": {
+                  "dates": [
+                    {
+                      "date": "2026-10-30",
+                      "countries": 39,
+                      "snapshots": 10980,
+                      "entries": 282932,
+                      "stores": {
+                        "app_store": {
+                          "countries": 39,
+                          "snapshots": 5382,
+                          "entries": 143465
+                        },
+                        "play": {
+                          "countries": 39,
+                          "snapshots": 5598,
+                          "entries": 139467
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meta_{store}.json": {
+      "get": {
+        "summary": "获取商店元数据定义 (支持地区、国家、榜单与分类)",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            },
+            "description": "目标应用商店代码 (`app_store` 或 `play`)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回元数据字典"
+          }
+        }
+      }
+    },
+    "/api/rankings/{store}_{country}_{chart}_{date}.json": {
+      "get": {
+        "summary": "获取指定总榜维度的 Top 30 完整排名与归因分析",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "us"
+            },
+            "description": "ISO 两位国家代码 (如 us, jp, kr, cn 等)"
+          },
+          {
+            "name": "chart",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "grossing",
+                "free",
+                "paid"
+              ]
+            },
+            "description": "榜单类型 (畅销榜/免费榜/付费榜)"
+          },
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2026-10-30"
+            },
+            "description": "数据日期 YYYY-MM-DD"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回当期 Top 30 排行榜明细、排名较昨日异动、量化统计及商业归因分析"
+          }
+        }
+      }
+    },
+    "/api/rankings/{store}_{country}_{chart}_{genre_id}_{date}.json": {
+      "get": {
+        "summary": "获取指定细分分类 (如游戏总榜) 的 Top 30 详细排名",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "us"
+            }
+          },
+          {
+            "name": "chart",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "grossing",
+                "free",
+                "paid"
+              ]
+            }
+          },
+          {
+            "name": "genre_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "6014"
+            },
+            "description": "分类 ID (App Store 游戏榜为 `6014`，Google Play 游戏榜为 `GAME`)"
+          },
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2026-10-30"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回该分类 Top 30 应用榜单明细"
+          }
+        }
+      }
+    },
+    "/api/summary/{store}_{date}.json": {
+      "get": {
+        "summary": "获取全天各国家大盘异动与异动概览",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            }
+          },
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "2026-10-30"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功返回当天全天各国家新晋、上升、下降应用统计"
+          }
+        }
+      }
+    },
+    "/api/trend/{store}_{country}_{chart}.json": {
+      "get": {
+        "summary": "获取各主要应用的历史排位时间序列",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "us"
+            }
+          },
+          {
+            "name": "chart",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "grossing",
+                "free",
+                "paid"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回该国家/榜单 Top 100 应用的多日最佳排位历史轨迹"
+          }
+        }
+      }
+    },
+    "/api/casual_giants.json": {
+      "get": {
+        "summary": "获取全球 20 休闲游戏大厂产品矩阵及表现",
+        "responses": {
+          "200": {
+            "description": "返回 20 休闲游戏大厂（如 Dream Games, Playrix, Voodoo, Scopely 等）各产品表现"
+          }
+        }
+      }
+    },
+    "/api/casual_giants_{region}.json": {
+      "get": {
+        "summary": "获取分地区休闲大厂矩阵表现",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "china",
+                "turkey",
+                "western",
+                "asia"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回分地区大厂矩阵数据"
+          }
+        }
+      }
+    },
+    "/api/category_trends/{store}_{country}.json": {
+      "get": {
+        "summary": "获取细分品类热度分布与增长大盘",
+        "parameters": [
+          {
+            "name": "store",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "app_store",
+                "play"
+              ]
+            }
+          },
+          {
+            "name": "country",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "us"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回细分品类综合热度与榜单占比趋势"
+          }
+        }
+      }
+    }
+  }
+}

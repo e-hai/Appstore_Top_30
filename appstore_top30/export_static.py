@@ -13,7 +13,38 @@ from . import analyze, category_intel, commercial_intel, config, db, publisher_t
 LOGGER = logging.getLogger(__name__)
 
 
-def generate_dates_json(conn: sqlite3.Connection) -> dict:
+def generate_dates_json(
+    conn: sqlite3.Connection,
+    existing_dates_path: Path | None = None,
+    summary_dir: Path | None = None,
+) -> dict:
+    grouped: dict[str, dict] = {}
+
+    # 1. Load from existing dates.json if present
+    if existing_dates_path and existing_dates_path.is_file():
+        try:
+            old_data = json.loads(existing_dates_path.read_text(encoding="utf-8"))
+            for item in old_data.get("dates", []):
+                if isinstance(item, dict) and "date" in item:
+                    grouped[item["date"]] = item
+        except Exception as exc:
+            LOGGER.warning("Could not read existing dates.json: %s", exc)
+
+    # 2. Discover dates from existing summary JSON files if available
+    if summary_dir and summary_dir.is_dir():
+        for f in summary_dir.glob("*.json"):
+            parts = f.stem.split("_")
+            if len(parts) >= 2 and parts[-1].count("-") == 2:
+                d = parts[-1]
+                store = "_".join(parts[:-1])
+                item = grouped.setdefault(
+                    d,
+                    {"date": d, "stores": {}, "countries": 39, "snapshots": 0, "entries": 0},
+                )
+                if store not in item["stores"]:
+                    item["stores"][store] = {"countries": 39, "snapshots": 0, "entries": 0}
+
+    # 3. Query current database connection
     rows = conn.execute(
         """
         SELECT date, store,
@@ -33,11 +64,12 @@ def generate_dates_json(conn: sqlite3.Connection) -> dict:
         ORDER BY date
         """
     ).fetchall()
-    grouped: dict[str, dict] = {}
+
     for row in rows:
+        d = row["date"]
         item = grouped.setdefault(
-            row["date"],
-            {"date": row["date"], "stores": {}, "countries": 0, "snapshots": 0, "entries": 0},
+            d,
+            {"date": d, "stores": {}, "countries": 0, "snapshots": 0, "entries": 0},
         )
         item["stores"][row["store"]] = {
             "countries": row["countries"],
@@ -45,9 +77,198 @@ def generate_dates_json(conn: sqlite3.Connection) -> dict:
             "entries": row["entries"],
         }
         item["countries"] = max(item["countries"], row["countries"])
-        item["snapshots"] += row["snapshots"]
-        item["entries"] += row["entries"]
-    return {"dates": list(grouped.values())}
+        item["snapshots"] = sum(s.get("snapshots", 0) for s in item["stores"].values())
+        item["entries"] = sum(s.get("entries", 0) for s in item["stores"].values())
+
+    sorted_dates = sorted(grouped.values(), key=lambda x: x["date"])
+    return {"dates": sorted_dates}
+
+
+def generate_openapi_spec(base_url: str = "https://e-hai.github.io/Appstore_Top_30") -> dict:
+    """Generate OpenAPI 3.0.3 specification for static JSON API endpoints."""
+    return {
+        "openapi": "3.0.3",
+        "info": {
+            "title": "App Store & Google Play Top 30 开放数据 API",
+            "version": "1.0.0",
+            "description": (
+                "全球 39 个国家/地区 App Store 与 Google Play 每日榜单 Top 30、"
+                "品类大盘趋势、20 休闲游戏大厂产品矩阵及多维商业归因分析数据开放接口。\n\n"
+                "### 接入特性\n"
+                "- **零依赖 & 纯静态**：所有接口均为预构建的标准 JSON 静态文件，依托全球 CDN 托管。\n"
+                "- **跨域支持**：全量支持 CORS (`Access-Control-Allow-Origin: *`)，前端与后端可直接发起 HTTP GET 请求。\n"
+                "- **零鉴权**：开放式访问，无需 API Key 或 Token。"
+            ),
+            "contact": {
+                "name": "App Store Top 30 Project",
+                "url": base_url,
+            },
+        },
+        "servers": [
+            {
+                "url": base_url,
+                "description": "GitHub Pages 线上生产环境 (带全球 CDN 加速)",
+            },
+            {
+                "url": ".",
+                "description": "当前相对路径环境",
+            },
+        ],
+        "paths": {
+            "/api/dates.json": {
+                "get": {
+                    "summary": "获取可用历史抓取日期列表",
+                    "description": "返回平台已收录的所有历史日期清单及 App Store / Google Play 的抓取统计指标。",
+                    "responses": {
+                        "200": {
+                            "description": "成功返回可用日期列表",
+                            "content": {
+                                "application/json": {
+                                    "example": {
+                                        "dates": [
+                                            {
+                                                "date": "2026-10-30",
+                                                "countries": 39,
+                                                "snapshots": 10980,
+                                                "entries": 282932,
+                                                "stores": {
+                                                    "app_store": {"countries": 39, "snapshots": 5382, "entries": 143465},
+                                                    "play": {"countries": 39, "snapshots": 5598, "entries": 139467}
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/api/meta_{store}.json": {
+                "get": {
+                    "summary": "获取商店元数据定义 (支持地区、国家、榜单与分类)",
+                    "parameters": [
+                        {
+                            "name": "store",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string", "enum": ["app_store", "play"]},
+                            "description": "目标应用商店代码 (`app_store` 或 `play`)"
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "成功返回元数据字典"
+                        }
+                    }
+                }
+            },
+            "/api/rankings/{store}_{country}_{chart}_{date}.json": {
+                "get": {
+                    "summary": "获取指定总榜维度的 Top 30 完整排名与归因分析",
+                    "parameters": [
+                        {"name": "store", "in": "path", "required": True, "schema": {"type": "string", "enum": ["app_store", "play"]}},
+                        {"name": "country", "in": "path", "required": True, "schema": {"type": "string", "example": "us"}, "description": "ISO 两位国家代码 (如 us, jp, kr, cn 等)"},
+                        {"name": "chart", "in": "path", "required": True, "schema": {"type": "string", "enum": ["grossing", "free", "paid"]}, "description": "榜单类型 (畅销榜/免费榜/付费榜)"},
+                        {"name": "date", "in": "path", "required": True, "schema": {"type": "string", "example": "2026-10-30"}, "description": "数据日期 YYYY-MM-DD"}
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "返回当期 Top 30 排行榜明细、排名较昨日异动、量化统计及商业归因分析"
+                        }
+                    }
+                }
+            },
+            "/api/rankings/{store}_{country}_{chart}_{genre_id}_{date}.json": {
+                "get": {
+                    "summary": "获取指定细分分类 (如游戏总榜) 的 Top 30 详细排名",
+                    "parameters": [
+                        {"name": "store", "in": "path", "required": True, "schema": {"type": "string", "enum": ["app_store", "play"]}},
+                        {"name": "country", "in": "path", "required": True, "schema": {"type": "string", "example": "us"}},
+                        {"name": "chart", "in": "path", "required": True, "schema": {"type": "string", "enum": ["grossing", "free", "paid"]}},
+                        {"name": "genre_id", "in": "path", "required": True, "schema": {"type": "string", "example": "6014"}, "description": "分类 ID (App Store 游戏榜为 `6014`，Google Play 游戏榜为 `GAME`)"},
+                        {"name": "date", "in": "path", "required": True, "schema": {"type": "string", "example": "2026-10-30"}}
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "返回该分类 Top 30 应用榜单明细"
+                        }
+                    }
+                }
+            },
+            "/api/summary/{store}_{date}.json": {
+                "get": {
+                    "summary": "获取全天各国家大盘异动与异动概览",
+                    "parameters": [
+                        {"name": "store", "in": "path", "required": True, "schema": {"type": "string", "enum": ["app_store", "play"]}},
+                        {"name": "date", "in": "path", "required": True, "schema": {"type": "string", "example": "2026-10-30"}}
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "成功返回当天全天各国家新晋、上升、下降应用统计"
+                        }
+                    }
+                }
+            },
+            "/api/trend/{store}_{country}_{chart}.json": {
+                "get": {
+                    "summary": "获取各主要应用的历史排位时间序列",
+                    "parameters": [
+                        {"name": "store", "in": "path", "required": True, "schema": {"type": "string", "enum": ["app_store", "play"]}},
+                        {"name": "country", "in": "path", "required": True, "schema": {"type": "string", "example": "us"}},
+                        {"name": "chart", "in": "path", "required": True, "schema": {"type": "string", "enum": ["grossing", "free", "paid"]}}
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "返回该国家/榜单 Top 100 应用的多日最佳排位历史轨迹"
+                        }
+                    }
+                }
+            },
+            "/api/casual_giants.json": {
+                "get": {
+                    "summary": "获取全球 20 休闲游戏大厂产品矩阵及表现",
+                    "responses": {
+                        "200": {
+                            "description": "返回 20 休闲游戏大厂（如 Dream Games, Playrix, Voodoo, Scopely 等）各产品表现"
+                        }
+                    }
+                }
+            },
+            "/api/casual_giants_{region}.json": {
+                "get": {
+                    "summary": "获取分地区休闲大厂矩阵表现",
+                    "parameters": [
+                        {
+                            "name": "region",
+                            "in": "path",
+                            "required": True,
+                            "schema": {"type": "string", "enum": ["china", "turkey", "western", "asia"]}
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "返回分地区大厂矩阵数据"
+                        }
+                    }
+                }
+            },
+            "/api/category_trends/{store}_{country}.json": {
+                "get": {
+                    "summary": "获取细分品类热度分布与增长大盘",
+                    "parameters": [
+                        {"name": "store", "in": "path", "required": True, "schema": {"type": "string", "enum": ["app_store", "play"]}},
+                        {"name": "country", "in": "path", "required": True, "schema": {"type": "string", "example": "us"}}
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "返回细分品类综合热度与榜单占比趋势"
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
 def generate_meta_json(conn: sqlite3.Connection, date: str | None, store: str) -> dict:
@@ -319,19 +540,29 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> No
     static_dir = out_dir / "static"
     static_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Copy frontend static files (HTML, CSS, JS)
+    # 1. Copy frontend static files (HTML, CSS, JS, API docs)
     src_static = Path(__file__).parent / "static"
     shutil.copy2(src_static / "dashboard.html", out_dir / "index.html")
     shutil.copy2(src_static / "styles.css", static_dir / "styles.css")
     shutil.copy2(src_static / "app.js", static_dir / "app.js")
+    if (src_static / "api-docs.html").is_file():
+        shutil.copy2(src_static / "api-docs.html", out_dir / "api-docs.html")
 
     conn = db.connect(db_path)
     try:
-        # 2. Export /api/dates.json
-        dates_data = generate_dates_json(conn)
+        # 2. Export /api/dates.json (with incremental merging of existing historical dates)
+        dates_data = generate_dates_json(
+            conn,
+            existing_dates_path=api_dir / "dates.json",
+            summary_dir=api_dir / "summary",
+        )
         (api_dir / "dates.json").write_text(json.dumps(dates_data, ensure_ascii=False, indent=2), encoding="utf-8")
         all_dates = [d["date"] for d in dates_data["dates"]]
         recent_dates = all_dates if (not dates_limit or dates_limit <= 0) else (all_dates[-dates_limit:] if len(all_dates) > dates_limit else all_dates)
+
+        # 2.1 Export /api/openapi.json for third-party developers
+        openapi_spec = generate_openapi_spec()
+        (api_dir / "openapi.json").write_text(json.dumps(openapi_spec, ensure_ascii=False, indent=2), encoding="utf-8")
 
         # 3. Export /api/casual_giants.json
         all_giants = publisher_tracker.get_publisher_portfolio(region="all")
@@ -528,6 +759,23 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> No
                             if points:
                                 trends[str(app_id)] = points
 
+                        trend_target_file = trend_dir / f"{store}_{country_code}_{chart_type}.json"
+                        # Merge with existing historical trends if available
+                        if trend_target_file.is_file():
+                            try:
+                                old_trend_data = json.loads(trend_target_file.read_text(encoding="utf-8"))
+                                old_trends = old_trend_data.get("trends", {})
+                                for aid, old_pts in old_trends.items():
+                                    if aid in trends:
+                                        point_map = {p["date"]: p for p in old_pts if "date" in p}
+                                        for new_p in trends[aid]:
+                                            point_map[new_p["date"]] = new_p
+                                        trends[aid] = sorted(point_map.values(), key=lambda p: p["date"])
+                                    else:
+                                        trends[aid] = old_pts
+                            except Exception as exc:
+                                LOGGER.warning("Could not merge existing trend file %s: %s", trend_target_file, exc)
+
                         trend_payload = {
                             "app_ids": list(trends.keys()),
                             "store": store,
@@ -535,7 +783,7 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> No
                             "chart": chart_type,
                             "trends": trends,
                         }
-                        (trend_dir / f"{store}_{country_code}_{chart_type}.json").write_text(
+                        trend_target_file.write_text(
                             json.dumps(trend_payload, ensure_ascii=False), encoding="utf-8"
                         )
 

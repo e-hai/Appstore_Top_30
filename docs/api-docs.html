@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App Store Top 30 开放数据 API 文档 (OpenAPI / Swagger)</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #111827;
+      --text-color: #f3f4f6;
+      --border-color: #1f2937;
+      --primary: #3b82f6;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #fafafa;
+      color: #333;
+    }
+    .top-nav {
+      background: #111827;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2937;
+    }
+    .top-nav .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .top-nav .nav-actions a {
+      color: #93c5fd;
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 12px;
+      border: 1px solid #374151;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .top-nav .nav-actions a:hover {
+      background: #1f2937;
+      color: #fff;
+    }
+    .notice-bar {
+      background: #eff6ff;
+      border-bottom: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 10px 24px;
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #swagger-ui {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px 60px 16px;
+    }
+    .swagger-ui .topbar { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>App Store & Google Play Top 30 开放数据 API</span>
+    </div>
+    <div class="nav-actions">
+      <a href="./index.html">← 返回数据看板</a>
+    </div>
+  </div>
+
+  <div class="notice-bar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <span><strong>第三方接入说明：</strong> 本接口基于全球 CDN 静态发布，支持任意前端与后端直接发起 HTTP <code>GET</code> 请求。已全量开启跨域支持（CORS：<code>*</code>），免鉴权直接返回标准 JSON。</span>
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function() {
+      SwaggerUIBundle({
+        url: "./api/openapi.json",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
+</html>

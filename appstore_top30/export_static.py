@@ -8,7 +8,7 @@ import sqlite3
 import urllib.parse
 from pathlib import Path
 
-from . import analyze, category_intel, commercial_intel, config, db, publisher_tracker
+from . import analyze, category_intel, config, db
 
 LOGGER = logging.getLogger(__name__)
 
@@ -221,34 +221,6 @@ def generate_openapi_spec(base_url: str = "https://e-hai.github.io/Appstore_Top_
                     "responses": {
                         "200": {
                             "description": "返回该国家/榜单 Top 100 应用的多日最佳排位历史轨迹"
-                        }
-                    }
-                }
-            },
-            "/api/casual_giants.json": {
-                "get": {
-                    "summary": "获取全球 20 休闲游戏大厂产品矩阵及表现",
-                    "responses": {
-                        "200": {
-                            "description": "返回 20 休闲游戏大厂（如 Dream Games, Playrix, Voodoo, Scopely 等）各产品表现"
-                        }
-                    }
-                }
-            },
-            "/api/casual_giants_{region}.json": {
-                "get": {
-                    "summary": "获取分地区休闲大厂矩阵表现",
-                    "parameters": [
-                        {
-                            "name": "region",
-                            "in": "path",
-                            "required": True,
-                            "schema": {"type": "string", "enum": ["china", "turkey", "western", "asia"]}
-                        }
-                    ],
-                    "responses": {
-                        "200": {
-                            "description": "返回分地区大厂矩阵数据"
                         }
                     }
                 }
@@ -484,15 +456,13 @@ def fast_compare_rankings(prev_rows: list[dict], curr_rows: list[dict]) -> list[
 
 
 def build_rich_attribution(items: list[dict], date: str, country_code: str, country_name: str, chart_type: str) -> dict:
-    """Build fast, rich attribution metadata with growth drivers, 4 commercial pillars, and news reports."""
+    """Build concise, objective attribution data without simulated rules or commercial news."""
     rising_sorted = sorted([i for i in items if (i.get("rank_change") or 0) > 0], key=lambda x: x["rank_change"], reverse=True)[:3]
     falling_sorted = sorted([i for i in items if (i.get("rank_change") or 0) < 0], key=lambda x: x["rank_change"])[:3]
     stable_sorted = sorted([i for i in items if i.get("curr_rank") and i["curr_rank"] <= 5], key=lambda x: x["curr_rank"])[:3]
     new_sorted = [i for i in items if i.get("status") == "new"][:3]
 
     def enrich_app(a):
-        driver = analyze._infer_growth_driver(a["name"], a.get("genre_name") or "", a.get("rank_change") or 0, a.get("status"), None)
-        reports = commercial_intel.fetch_commercial_platform_reports(a["name"], a.get("genre_name") or "")
         return {
             "app_id": str(a["app_id"]),
             "name": a["name"],
@@ -500,8 +470,6 @@ def build_rich_attribution(items: list[dict], date: str, country_code: str, coun
             "rank_change": a.get("rank_change"),
             "genre_name": a.get("genre_name"),
             "developer": a.get("developer"),
-            "driver": driver,
-            "commercial_reports": reports,
         }
 
     rising_apps = [enrich_app(a) for a in rising_sorted]
@@ -510,13 +478,10 @@ def build_rich_attribution(items: list[dict], date: str, country_code: str, coun
     new_apps = [enrich_app(a) for a in new_sorted]
 
     chart_zh = config.CHART_TYPES.get(chart_type, chart_type)
-    exec_summary = f"【{country_name} · {chart_zh} 归因观察】今日大盘整体保持流动，共监测到 {len(new_apps)} 款新晋产品上榜，{len(rising_apps)} 款产品在广告投放与版本促活下实现排名快速上升。"
-
-    factors = [
-        {"icon": "🚀", "title": "买量主导型增长 (UA)", "detail": "以新广告素材集中投放驱动的排名爆发"},
-        {"icon": "⚡", "title": "版本大更与促活 (LiveOps)", "detail": "伴随新版本与限时活动发布的自然回流"},
-        {"icon": "🛡️", "title": "长线留存王者 (Retention)", "detail": "头部常青产品依靠高 DAU 与社群生态稳居前列"},
-    ]
+    exec_summary = (
+        f"今日 {date} {country_name}{chart_zh}大盘：共监测到 {len(new_apps)} 款新晋上榜应用，"
+        f"{len(rising_apps)} 款应用排名大幅上升，头部维持稳定。"
+    )
 
     return {
         "date": date,
@@ -524,7 +489,6 @@ def build_rich_attribution(items: list[dict], date: str, country_code: str, coun
         "country_name": country_name,
         "chart_name": chart_zh,
         "exec_summary": exec_summary,
-        "factors": factors,
         "rising_apps": rising_apps,
         "falling_apps": falling_apps,
         "stable_apps": stable_apps,
@@ -557,25 +521,19 @@ def export_static_site(db_path: Path, out_dir: Path, dates_limit: int = 0) -> No
             summary_dir=api_dir / "summary",
         )
         (api_dir / "dates.json").write_text(json.dumps(dates_data, ensure_ascii=False, indent=2), encoding="utf-8")
-        all_dates = [d["date"] for d in dates_data["dates"]]
-        recent_dates = all_dates if (not dates_limit or dates_limit <= 0) else (all_dates[-dates_limit:] if len(all_dates) > dates_limit else all_dates)
+        # Determine which dates to actually export from current DB connection
+        db_dates = [
+            r[0] for r in conn.execute(
+                "SELECT DISTINCT date FROM snapshots UNION SELECT DISTINCT date FROM play_snapshots ORDER BY date"
+            ).fetchall()
+        ]
+        recent_dates = db_dates if (not dates_limit or dates_limit <= 0) else (db_dates[-dates_limit:] if len(db_dates) > dates_limit else db_dates)
 
         # 2.1 Export /api/openapi.json for third-party developers
         openapi_spec = generate_openapi_spec()
         (api_dir / "openapi.json").write_text(json.dumps(openapi_spec, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        # 3. Export /api/casual_giants.json
-        all_giants = publisher_tracker.get_publisher_portfolio(region="all")
-        giants_payload = {"total": len(all_giants), "publishers": all_giants}
-        (api_dir / "casual_giants.json").write_text(json.dumps(giants_payload, ensure_ascii=False, indent=2), encoding="utf-8")
-        for reg in ["turkey", "china", "western", "asia"]:
-            reg_giants = publisher_tracker.get_publisher_portfolio(region=reg)
-            (api_dir / f"casual_giants_{reg}.json").write_text(
-                json.dumps({"total": len(reg_giants), "publishers": reg_giants}, ensure_ascii=False, indent=2),
-                encoding="utf-8"
-            )
-
-        # 4. Export /api/meta for both stores
+        # 3. Export /api/meta for both stores
         for store in ["app_store", "play"]:
             store_dates = [d["date"] for d in dates_data["dates"] if store in d.get("stores", {})]
             latest_store_date = store_dates[-1] if store_dates else "2026-08-19"

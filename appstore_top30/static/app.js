@@ -115,10 +115,6 @@ function resolveStaticApiUrl(path) {
   if (pathname === "/api/dates") {
     return `${base}/dates.json`;
   }
-  if (pathname === "/api/casual-giants") {
-    const region = params.get("region") || "all";
-    return region === "all" ? `${base}/casual_giants.json` : `${base}/casual_giants_${region}.json`;
-  }
   if (pathname === "/api/meta") {
     const store = params.get("store") || "app_store";
     return `${base}/meta_${store}.json`;
@@ -341,37 +337,22 @@ function bindEvents() {
   // 抽屉内 Tab 切页
   const tabAttr = document.getElementById("intel-tab-attr");
   const tabCat = document.getElementById("intel-tab-cat");
-  const tabGiants = document.getElementById("intel-tab-giants");
   const panelAttr = document.getElementById("intel-panel-attr");
   const panelCat = document.getElementById("intel-panel-cat");
-  const panelGiants = document.getElementById("intel-panel-giants");
 
   const switchIntelTab = (target) => {
     if (tabAttr) tabAttr.classList.toggle("active", target === 'attr');
     if (tabCat) tabCat.classList.toggle("active", target === 'cat');
-    if (tabGiants) tabGiants.classList.toggle("active", target === 'giants');
 
     if (panelAttr) panelAttr.classList.toggle("hidden", target !== 'attr');
     if (panelCat) panelCat.classList.toggle("hidden", target !== 'cat');
-    if (panelGiants) panelGiants.classList.toggle("hidden", target !== 'giants');
 
     if (target === 'attr') loadAttributionData();
     if (target === 'cat') loadCategoryTrendsData();
-    if (target === 'giants') loadCasualGiantsData();
   };
 
   if (tabAttr) tabAttr.addEventListener("click", () => switchIntelTab('attr'));
   if (tabCat) tabCat.addEventListener("click", () => switchIntelTab('cat'));
-  if (tabGiants) tabGiants.addEventListener("click", () => switchIntelTab('giants'));
-
-  // 厂商区域切页按钮
-  document.querySelectorAll(".giant-region-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".giant-region-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      loadCasualGiantsData(btn.dataset.region || 'all');
-    });
-  });
 
   els.pubClose.addEventListener("click", closePublisherDrawer);
   els.drawerMask.addEventListener("click", () => {
@@ -564,74 +545,25 @@ function renderQuantSummary() {
   const attr = state.marketAttribution || {};
   const elMeta = document.getElementById("attr-meta");
   const elSummary = document.getElementById("attribution-summary-drawer");
-  const elList = document.getElementById("attribution-factors-list-drawer");
 
   if (elMeta) elMeta.textContent = `${attr.date || state.date || "今日"} · ${attr.country_name || ""} ${attr.chart_name || ""}`;
-  if (elSummary) elSummary.textContent = attr.exec_summary || "暂无当日归因洞察数据";
-  if (elList && attr.factors) {
-    elList.innerHTML = attr.factors
-      .map(
-        (f) => `
-        <div class="factor-item">
-          <div class="factor-icon">${f.icon}</div>
-          <div class="factor-content">
-            <div class="factor-title">${esc(f.title)}</div>
-            <div class="factor-detail">${esc(f.detail)}</div>
-          </div>
-        </div>`
-      )
-      .join("");
-  }
+  if (elSummary) elSummary.textContent = attr.exec_summary || "暂无当日异动概览数据";
 
-  // Helper function to build 4-pillar inline pills HTML
-  const buildCommercialPillarsHtml = (a) => {
-    const p = a.driver?.pillars;
-    if (!p) return '';
-    return `
-      <div class="attr-pill-row">
-        <span class="attr-pillar-pill">📦 <strong>版本:</strong> ${esc(p.aso_version || '-')}</span>
-        <span class="attr-pillar-pill">🎯 <strong>宣传:</strong> ${esc(p.ua_sov || '-')}</span>
-        <span class="attr-pillar-pill">🎉 <strong>活动:</strong> ${esc(p.liveops || '-')}</span>
-        <span class="attr-pillar-pill">💰 <strong>收费:</strong> ${esc(p.monetization || '-')}</span>
-      </div>`;
-  };
-
-  // Helper function to build multi-channel news card HTML
-  const buildCommercialReportsHtml = (a) => {
-    if (!a.commercial_reports || !a.commercial_reports.length) return '';
-    return `
-      <div class="attr-news-card">
-        <div class="attr-news-header">📰 全网新闻与商业平台报道</div>
-        ${a.commercial_reports.map(r => `
-          <div class="attr-news-item">
-            <a class="attr-news-link" href="${esc(r.url)}" target="_blank" rel="noopener">[${esc(r.platform)}] ${esc(r.title)} ↗</a>
-            <div class="attr-news-snippet">${esc(r.snippet)}</div>
-          </div>
-        `).join('')}
-      </div>`;
-  };
-
-  // Helper function to render a unified modern App Card
+  // Helper function to render a clean, objective App Card
   const renderAppCard = (a, extraBadgeHtml = '') => `
-    <div class="attr-card">
-      <div class="attr-card-header">
+    <div class="attr-card" style="padding: 10px 12px; margin-bottom: 8px;">
+      <div class="attr-card-header" style="margin-bottom: 0;">
         <div class="attr-card-left">
           <span class="attr-rank-badge">#${a.curr_rank}</span>
           <div class="attr-app-info">
-            <div class="attr-app-name">${esc(a.name)}</div>
-            <div class="attr-app-dev">${esc(a.genre_name)} · ${esc(a.developer)}</div>
+            <div class="attr-app-name" style="font-weight: 600; font-size: 13px;">${esc(a.name)}</div>
+            <div class="attr-app-dev" style="font-size: 11px; color: var(--text-2); margin-top: 2px;">${esc(a.genre_name || '')} · ${esc(a.developer || '')}</div>
           </div>
         </div>
         <div style="display:flex; gap:6px; align-items:center;">
-          <span class="badge ${a.driver?.badge_cls || 'up'}">${esc(a.driver?.tag || '异动')}</span>
           ${extraBadgeHtml}
         </div>
       </div>
-      <div class="attr-summary-box">
-        ${esc(a.driver?.detail || '')}
-      </div>
-      ${buildCommercialPillarsHtml(a)}
-      ${buildCommercialReportsHtml(a)}
     </div>`;
 
   // 渲染 🚀 今日冲榜爆发 Top 3
@@ -1230,21 +1162,16 @@ async function showIntelDrawer(tabName = 'attr') {
 
   const tabAttr = document.getElementById("intel-tab-attr");
   const tabCat = document.getElementById("intel-tab-cat");
-  const tabGiants = document.getElementById("intel-tab-giants");
   const panelAttr = document.getElementById("intel-panel-attr");
   const panelCat = document.getElementById("intel-panel-cat");
-  const panelGiants = document.getElementById("intel-panel-giants");
 
   if (tabAttr) tabAttr.classList.toggle("active", tabName === 'attr');
   if (tabCat) tabCat.classList.toggle("active", tabName === 'cat');
-  if (tabGiants) tabGiants.classList.toggle("active", tabName === 'giants');
 
   if (panelAttr) panelAttr.classList.toggle("hidden", tabName !== 'attr');
   if (panelCat) panelCat.classList.toggle("hidden", tabName !== 'cat');
-  if (panelGiants) panelGiants.classList.toggle("hidden", tabName !== 'giants');
 
   if (tabName === 'cat') loadCategoryTrendsData();
-  else if (tabName === 'giants') loadCasualGiantsData();
   else loadAttributionData();
 
   elDrawer.classList.add("open");
@@ -1259,73 +1186,6 @@ function closeIntelDrawer() {
     elDrawer.setAttribute("aria-hidden", "true");
   }
   els.drawerMask.classList.add("hidden");
-}
-
-async function loadCasualGiantsData(region = 'all') {
-  setLoading(true);
-  try {
-    const url = `/api/casual-giants?region=${encodeURIComponent(region)}`;
-    const res = await api(url);
-    const publishers = res.publishers || [];
-
-    const elSub = document.getElementById("intel-drawer-sub");
-    if (elSub) {
-      elSub.textContent = `🎮 20大休闲巨头动态矩阵 (已追踪 ${res.total} 家核心厂商)`;
-    }
-
-    const renderGameItem = (g, badgeCls, badgeText) => `
-      <div class="giant-game-item">
-        <div class="giant-game-head">
-          <span class="giant-game-name">${g.icon || '🎮'} ${esc(g.name)}</span>
-          <span class="${badgeCls}">${esc(g.status || badgeText)}</span>
-        </div>
-        <div style="font-size:10px; color:var(--text-2); margin-top:2px;">
-          ${g.release_date ? `发布时间: <code>${esc(g.release_date)}</code> · ` : g.expected_date ? `预计上线: <code>${esc(g.expected_date)}</code> · ` : ''}
-          ${esc(g.desc || '')}
-        </div>
-      </div>`;
-
-    const renderPubCard = (p) => `
-      <div class="giant-pub-card">
-        <div class="giant-pub-header">
-          <div>
-            <span class="giant-pub-name">${esc(p.name)}</span>
-            <span style="font-size:11px; color:var(--text-3); margin-left:6px;">${esc(p.country)}</span>
-          </div>
-          <span class="giant-pub-tag">${esc(p.category)}</span>
-        </div>
-        <div class="giant-pub-desc">${esc(p.desc)}</div>
-
-        <!-- 🟢 已发布经典爆款 -->
-        <div class="giant-game-group">
-          <div class="giant-game-title">🟢 已发布爆款游戏 (${p.published_games?.length || 0})</div>
-          ${(p.published_games || []).map(g => renderGameItem(g, 'game-badge-published', '已发布')).join('')}
-        </div>
-
-        <!-- 🚀 近期新发布/热播中 -->
-        <div class="giant-game-group">
-          <div class="giant-game-title">🚀 近期新发布游戏 (${p.new_games?.length || 0})</div>
-          ${(p.new_games || []).map(g => renderGameItem(g, 'game-badge-new', '新发布')).join('')}
-        </div>
-
-        <!-- ⏳ 准备发布 / 预预约 / 软发射中 -->
-        <div class="giant-game-group">
-          <div class="giant-game-title">⏳ 准备发布 / 预预约中 (${p.upcoming_games?.length || 0})</div>
-          ${(p.upcoming_games || []).map(g => renderGameItem(g, 'game-badge-upcoming', '准备发布')).join('')}
-        </div>
-      </div>`;
-
-    const elList = document.getElementById("casual-giants-list");
-    if (elList) {
-      elList.innerHTML = publishers.length
-        ? publishers.map(renderPubCard).join("")
-        : '<div class="no-data">暂无厂商数据</div>';
-    }
-  } catch (err) {
-    console.error("loadCasualGiantsData error:", err);
-  } finally {
-    setLoading(false);
-  }
 }
 
 async function loadAttributionData() {

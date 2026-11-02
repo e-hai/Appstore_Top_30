@@ -5,7 +5,7 @@ import sqlite3
 import urllib.request
 from functools import lru_cache
 
-from . import commercial_intel, config, db
+from . import config, db
 
 
 def _to_float(value) -> float | None:
@@ -397,118 +397,6 @@ def sync_all_app_metadata(conn: sqlite3.Connection) -> int:
     return count
 
 
-def _infer_growth_driver(app_name: str, genre_name: str, rank_change: int | None, status: str | None = None, empirical: dict | None = None) -> dict:
-    name_lower = (app_name or "").lower()
-    genre_lower = (genre_name or "").lower()
-    change_val = rank_change or 0
-    emp = empirical or {}
-    rel_date = emp.get("release_date", "近期")
-    version = emp.get("version", "最新")
-
-    is_spiker = change_val >= 10
-    confidence = "高置信" if (emp.get("has_empirical") and is_spiker) else "中高置信" if emp.get("has_empirical") else "常规估算"
-
-    if any(k in name_lower for k in ["parentsquare", "dojo", "canvas", "remind", "clever", "schoology"]):
-        tag = "🎓 8月开学季刚需"
-        badge_cls = "new"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "开学刚需自然下载",
-            "liveops": "新学期家校通知与作业",
-            "monetization": "免费"
-        }
-        detail = f"【重点总结】8月北美学校集中开学，学校强制要求家长和学生下载该 App 接收通知与作业。配合 {rel_date} 推出的 v{version} 适配更新，带来集中暴涨。"
-    elif any(k in name_lower for k in ["whatsapp", "threads", "instagram", "facebook", "tiktok", "capcut"]):
-        tag = "🚀 全网广告大促+新功能"
-        badge_cls = "up"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "各大社交平台广告推广",
-            "liveops": "新功能拉新大促",
-            "monetization": "免费"
-        }
-        detail = f"【重点总结】近期在各大平台加大广告投放宣传，结合 {rel_date} 推出的 v{version} 热门新功能更新，吸引大量新用户下载体验。"
-    elif any(k in name_lower for k in ["authenticator", "teams", "microsoft", "google", "outlook"]):
-        tag = "📦 企业安全要求强制"
-        badge_cls = "first"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "企业 IT 集中要求安装",
-            "liveops": "双重验证账号安全升级",
-            "monetization": "免费/企业授权"
-        }
-        detail = f"【重点总结】微软/谷歌近期更新企业安全规范，要求员工集中安装双重验证账号。配合 {rel_date} 安全修补版本，触发 B 端集中下载。"
-    elif any(k in name_lower for k in ["vpn", "browser", "tor", "privacy", "safari", "chrome"]):
-        tag = "🇪🇺 隐私与政策合规"
-        badge_cls = "first"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "合规与隐私搜索拉新",
-            "liveops": "浏览器选择与隐私规范",
-            "monetization": "免费/高级版"
-        }
-        detail = f"【重点总结】受平台最新隐私规范与浏览器政策调整驱动，工具与隐私类 App 引发了一轮集中合规下载热潮。"
-    elif any(k in name_lower for k in ["shopping", "amazon", "temu", "shein", "walmart", "target"]):
-        tag = "🛍️ 假日与返校季大促"
-        badge_cls = "up"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "大促广告宣传",
-            "liveops": "返校季限时折扣活动",
-            "monetization": "应用内折扣购物"
-        }
-        detail = f"【重点总结】暑期与返校季购物大促上线，电商巨头加大全网折扣宣传，吸引大量购物用户下载领券。"
-    elif any(k in name_lower for k in ["chatgpt", "claude", "copilot"]):
-        tag = "🤖 AI 新功能上线促活"
-        badge_cls = "first"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "科技媒体报道与口碑传播",
-            "liveops": "新模型与应用内订阅活动",
-            "monetization": "会员内购订阅"
-        }
-        detail = f"【重点总结】官方于 {rel_date} 发布 v{version} 最新能力更新，配合科技媒体广泛报道与应用内订阅活动，带动排名提升并保持极高留存。"
-    elif "game" in name_lower or "games" in genre_lower:
-        if change_val < 0:
-            tag = "📉 大促结束自然回调"
-            badge_cls = "down"
-            pillars = {
-                "aso_version": f"v{version} ({rel_date})",
-                "ua_sov": "宣发预算阶段性收紧",
-                "liveops": "首发活动热度回落",
-                "monetization": "游戏内购"
-            }
-            detail = f"【重点总结】游戏首发或大促宣发期满，广告宣传预算收紧，名次出现正常的阶段性回调。"
-        else:
-            tag = "🎉 游戏新赛季/活动大促"
-            badge_cls = "up"
-            pillars = {
-                "aso_version": f"v{version} ({rel_date})",
-                "ua_sov": "视频广告高频宣传",
-                "liveops": "新赛季与限时联名活动",
-                "monetization": "道具打折促销"
-            }
-            detail = f"【重点总结】游戏于 {rel_date} 上线 v{version} 新赛季活动，结合高吸引力视频广告投放，冲榜拉新效果显著。"
-    else:
-        tag = "📦 版本常规更新"
-        badge_cls = "same"
-        pillars = {
-            "aso_version": f"v{version} ({rel_date})",
-            "ua_sov": "日常渠道宣传",
-            "liveops": "日常功能维护",
-            "monetization": "免费/内购"
-        }
-        detail = f"【重点总结】App 于 {rel_date} 发布 v{version} 版本更新，优化了性能与使用体验，维持榜单平稳表现。"
-
-    return {
-        "tag": tag,
-        "badge_cls": badge_cls,
-        "confidence": confidence,
-        "pillars": pillars,
-        "detail": detail
-    }
-
-
 def generate_market_attribution(
     conn: sqlite3.Connection,
     date: str,
@@ -528,76 +416,65 @@ def generate_market_attribution(
     changes = compare_rankings(prev_filtered, curr_filtered)
     quant_res = enrich_quant_factors(conn, changes, country, chart_type, store, target_genre)
     qs = quant_res["summary"]
-
     items = quant_res["items"]
 
-    # Rising Top 3
+    # Rising Top 3 (客观排名提升最多)
     rising = [i for i in items if i.get("rank_change") is not None and i["rank_change"] > 0]
     rising_sorted = sorted(rising, key=lambda x: x["rank_change"], reverse=True)[:3]
-    rising_apps = []
-    for r in rising_sorted:
-        emp = fetch_empirical_app_metadata(str(r["app_id"]), conn=conn)
-        reports = commercial_intel.fetch_commercial_platform_reports(r["name"], r["genre_name"])
-        rising_apps.append({
+    rising_apps = [
+        {
             "app_id": r["app_id"],
             "name": r["name"],
             "curr_rank": r["curr_rank"],
             "rank_change": r["rank_change"],
             "genre_name": r["genre_name"],
             "developer": r["developer"],
-            "driver": _infer_growth_driver(r["name"], r["genre_name"], r["rank_change"], r.get("status"), emp),
-            "empirical": emp,
-            "commercial_reports": reports,
-        })
+        }
+        for r in rising_sorted
+    ]
 
-    # Falling Top 3
+    # Falling Top 3 (客观排名下滑最多)
     falling = [i for i in items if i.get("rank_change") is not None and i["rank_change"] < 0]
     falling_sorted = sorted(falling, key=lambda x: x["rank_change"])[:3]
-    falling_apps = []
-    for f in falling_sorted:
-        emp = fetch_empirical_app_metadata(str(f["app_id"]), conn=conn)
-        falling_apps.append({
+    falling_apps = [
+        {
             "app_id": f["app_id"],
             "name": f["name"],
             "curr_rank": f["curr_rank"],
             "rank_change": f["rank_change"],
             "genre_name": f["genre_name"],
             "developer": f["developer"],
-            "driver": _infer_growth_driver(f["name"], f["genre_name"], f["rank_change"], f.get("status"), emp),
-            "empirical": emp,
-        })
+        }
+        for f in falling_sorted
+    ]
 
-    # Stable Top 3
+    # Stable Top 3 (客观排名最为稳定)
     stable = [i for i in items if i.get("std_dev") is not None]
     stable_sorted = sorted(stable, key=lambda x: x["std_dev"])[:3]
-    stable_apps = []
-    for s in stable_sorted:
-        emp = fetch_empirical_app_metadata(str(s["app_id"]), conn=conn)
-        stable_apps.append({
+    stable_apps = [
+        {
             "app_id": s["app_id"],
             "name": s["name"],
             "curr_rank": s["curr_rank"],
             "std_dev": s["std_dev"],
             "genre_name": s["genre_name"],
             "developer": s["developer"],
-            "driver": _infer_growth_driver(s["name"], s["genre_name"], s.get("rank_change"), s.get("status"), emp),
-            "empirical": emp,
-        })
+        }
+        for s in stable_sorted
+    ]
 
-    # New entries
+    # New entries (新上榜应用)
     new_entries = [i for i in items if i.get("status") == "new"]
-    new_apps = []
-    for n in new_entries:
-        emp = fetch_empirical_app_metadata(str(n["app_id"]), conn=conn)
-        new_apps.append({
+    new_apps = [
+        {
             "app_id": n["app_id"],
             "name": n["name"],
             "curr_rank": n["curr_rank"],
             "genre_name": n["genre_name"],
             "developer": n["developer"],
-            "driver": _infer_growth_driver(n["name"], n["genre_name"], n.get("rank_change"), "new", emp),
-            "empirical": emp,
-        })
+        }
+        for n in new_entries
+    ]
 
     country_map = {code: name for region in config.REGIONS.values() for code, name in region["countries"]}
     country_name = country_map.get(country, country.upper())
@@ -614,12 +491,12 @@ def generate_market_attribution(
     except ValueError:
         vol_num = 0.0
 
-    env_desc = "头部格局极其固化" if vol_num < 0.5 else "中等换手热度" if vol_num < 2.0 else "剧烈换血洗牌"
+    env_desc = "头部格局固化" if vol_num < 0.5 else "中等变动热度" if vol_num < 2.0 else "剧烈换血洗牌"
 
     exec_summary = (
-        f"今日{date} {country_name}{chart_name}大盘整体呈现【{env_desc}】态势。"
-        f"以 {spiker_name} 为代表的 {spiking_count} 款应用实现快速跃升（最高 {spiker_val}），"
-        f"同时 {stable_name} 等头部大厂应用维持强留存基底。"
+        f"今日 {date} {country_name}{chart_name}大盘整体呈现【{env_desc}】态势。"
+        f"共监测到 {len(new_apps)} 款新晋上榜产品，{len(rising_apps)} 款应用排名上升（以 {spiker_name} 最快，提升 {spiker_val}），"
+        f"头部有 {len(stable_apps)} 款应用维持稳定在榜。"
     )
 
     return {
@@ -631,21 +508,4 @@ def generate_market_attribution(
         "falling_apps": falling_apps,
         "stable_apps": stable_apps,
         "new_apps": new_apps,
-        "factors": [
-            {
-                "icon": "🚀",
-                "title": "冲榜爆发因素",
-                "detail": f"今日大盘共有 {spiking_count} 款应用排名提升，其中 {spiker_name} 冲榜最猛（跃升 {spiker_val}），反映出特定推广买量或版本更新的拉动效果。",
-            },
-            {
-                "icon": "👑",
-                "title": "头部留存因素",
-                "detail": f"头部 Top 10 展现出强防御韧性，{stable_name} 波动率仅为 0.00，品牌壁垒与长青粘性极强。",
-            },
-            {
-                "icon": "⚡",
-                "title": "大盘换血因素",
-                "detail": f"大盘平均变动指数为 {avg_vol}，本日新上榜 App 共 {new_count} 款，竞争格局属于【{env_desc}】。",
-            },
-        ],
     }

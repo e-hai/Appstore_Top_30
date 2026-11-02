@@ -284,42 +284,6 @@
         }
       }
     },
-    "/api/casual_giants.json": {
-      "get": {
-        "summary": "获取全球 20 休闲游戏大厂产品矩阵及表现",
-        "responses": {
-          "200": {
-            "description": "返回 20 休闲游戏大厂（如 Dream Games, Playrix, Voodoo, Scopely 等）各产品表现"
-          }
-        }
-      }
-    },
-    "/api/casual_giants_{region}.json": {
-      "get": {
-        "summary": "获取分地区休闲大厂矩阵表现",
-        "parameters": [
-          {
-            "name": "region",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "china",
-                "turkey",
-                "western",
-                "asia"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "返回分地区大厂矩阵数据"
-          }
-        }
-      }
-    },
     "/api/category_trends/{store}_{country}.json": {
       "get": {
         "summary": "获取细分品类热度分布与增长大盘",

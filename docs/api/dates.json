@@ -1799,6 +1799,24 @@
       "countries": 39,
       "snapshots": 10905,
       "entries": 283187
+    },
+    {
+      "date": "2026-11-14",
+      "stores": {
+        "app_store": {
+          "countries": 39,
+          "snapshots": 5382,
+          "entries": 143475
+        },
+        "play": {
+          "countries": 39,
+          "snapshots": 5522,
+          "entries": 139300
+        }
+      },
+      "countries": 39,
+      "snapshots": 10904,
+      "entries": 282775
     }
   ]
 }

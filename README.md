@@ -5,6 +5,7 @@
 - 🌐 **在线数据看板**：[https://e-hai.github.io/Appstore_Top_30/](https://e-hai.github.io/Appstore_Top_30/)
 - 📖 **交互式 API 开发者文档 (Swagger)**：[https://e-hai.github.io/Appstore_Top_30/api-docs.html](https://e-hai.github.io/Appstore_Top_30/api-docs.html)
 - ⚙️ **OpenAPI 3.0 规范定义文件**：[https://e-hai.github.io/Appstore_Top_30/api/openapi.json](https://e-hai.github.io/Appstore_Top_30/api/openapi.json)
+- 🧭 **静态查询前端（RankBeacon）**：[https://rankbeacon.pages.dev/](https://rankbeacon.pages.dev/) —— 基于本仓库 API 的「市场 × 商店 × 榜单」静态页，39 国共 231 页，支持 Top 30 明细与 CSV 导出
 
 ---
 
